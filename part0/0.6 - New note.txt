@@ -1,0 +1,8 @@
+title SPA New Note
+
+Browser->Server: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+
+note over Browser:
+Browser adds note
+to the list
+end note
