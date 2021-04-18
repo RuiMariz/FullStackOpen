@@ -46,20 +46,25 @@ const Statistics = ({ good, neutral, bad }) => {
       </div>
     )
   return (
-    <div>
+    <table>
       <Statistic text="good" value={good} />
       <Statistic text="neutral" value={neutral} />
       <Statistic text="bad" value={bad} />
       <Statistic text="all" value={good + neutral + bad} />
       <Statistic text="average" value={(good - bad) / (good + neutral + bad)} />
       <Statistic text="positive" value={(good / (good + neutral + bad) * 100) + " %"} />
-    </div>
+    </table>
   )
 }
 
 const Statistic = ({ text, value }) => {
   return (
-    <p>{text} {value}</p>
+    <tbody>
+      <tr>
+        <td>{text}</td>
+        <td>{value}</td>
+      </tr>
+    </tbody>
   )
 }
 
