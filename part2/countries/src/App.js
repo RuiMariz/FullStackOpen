@@ -14,17 +14,30 @@ const Countries = (props) => {
     return <p>Too many matches, specify another filter</p>
   if (props.shownCountries.length > 1) {
     return (
-      <ul>
-        {props.shownCountries.map(country => <li key={country}>{country}</li>)}
-      </ul>
+      <div>
+        {props.shownCountries.map((country, index) => {
+          return (
+            <div key={country}>
+              <p>{country}</p>
+              <button onClick={() => props.handleOptionsChange(index)}>
+                {props.showOptions[index] ? "hide" : "show"}
+              </button>
+              <OneCountry name={country} countries={props.countries} show={props.showOptions[index]} />
+            </div>
+          )
+        }
+        )}
+      </div>
     )
   }
   if (props.shownCountries.length === 1)
-    return <OneCountry name={props.shownCountries[0]} countries={props.countries} />
+    return <OneCountry name={props.shownCountries[0]} countries={props.countries} show={true} />
   return <p>No countries match the filter</p>
 }
 
 const OneCountry = (props) => {
+  if (!props.show)
+    return null
   const country = props.countries.find((co) => co.name === props.name)
   return (
     <div>
@@ -46,6 +59,7 @@ const App = () => {
   const [countries, setCountries] = useState([])
   const [countryFilter, setCountryFilter] = useState('')
   const [shownCountries, setShownCountries] = useState([])
+  const [showOptions, setShowOptions] = useState(new Array(10).fill(false))
 
   useEffect(() => {
     axios
@@ -58,6 +72,13 @@ const App = () => {
   const handleCountryFilterChange = (event) => {
     setCountryFilter(event.target.value)
     filterCountries(event.target.value)
+    setShowOptions(new Array(10).fill(false))
+  }
+
+  const handleOptionsChange = (index) => {
+    const copy = [...showOptions]
+    copy[index] = !copy[index]
+    setShowOptions(copy)
   }
 
   const filterCountries = (filter) => {
@@ -72,7 +93,7 @@ const App = () => {
   return (
     <div>
       <Filter countryFilter={countryFilter} handleCountryFilterChange={handleCountryFilterChange} />
-      <Countries shownCountries={shownCountries} countries={countries} />
+      <Countries shownCountries={shownCountries} countries={countries} showOptions={showOptions} handleOptionsChange={handleOptionsChange} />
     </div>
   )
 }
