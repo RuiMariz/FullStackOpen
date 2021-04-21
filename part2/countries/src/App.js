@@ -15,14 +15,15 @@ const Countries = (props) => {
   if (props.shownCountries.length > 1) {
     return (
       <div>
-        {props.shownCountries.map((country, index) => {
+        {props.shownCountries.map((name, index) => {
+          const country = props.countries.find((co) => co.name === props.shownCountries[index])
           return (
-            <div key={country}>
-              <p>{country}</p>
+            <div key={name}>
+              <p>{name}</p>
               <button onClick={() => props.handleOptionsChange(index)}>
                 {props.showOptions[index] ? "hide" : "show"}
               </button>
-              <OneCountry name={country} countries={props.countries} show={props.showOptions[index]} />
+              <OneCountry country={country} show={props.showOptions[index]} />
             </div>
           )
         }
@@ -30,27 +31,55 @@ const Countries = (props) => {
       </div>
     )
   }
-  if (props.shownCountries.length === 1)
-    return <OneCountry name={props.shownCountries[0]} countries={props.countries} show={true} />
+  if (props.shownCountries.length === 1) {
+    const country = props.countries.find((co) => co.name === props.shownCountries[0])
+    return (
+      <div>
+        <OneCountry country={country} show={true}
+          weather={props.weather} setWeather={props.setWeather} />
+        <h3>Weather in {country.capital}</h3>
+        <Weather country={country} weather={props.weather} setWeather={props.setWeather} />
+      </div>
+    )
+  }
   return <p>No countries match the filter</p>
 }
 
 const OneCountry = (props) => {
   if (!props.show)
     return null
-  const country = props.countries.find((co) => co.name === props.name)
   return (
     <div>
       <h2>
-        {props.name}
+        {props.country.name}
       </h2>
-      <p>capital {country.capital}</p>
-      <p>population {country.population}</p>
+      <p>capital {props.country.capital}</p>
+      <p>population {props.country.population}</p>
       <h3>Languages</h3>
       <ul>
-        {country.languages.map(language => <li key={language.name}>{language.name}</li>)}
+        {props.country.languages.map(language => <li key={language.name}>{language.name}</li>)}
       </ul>
-      <img src={country.flag} alt={"Flag of ".concat(country.name)} width="150px"></img>
+      <img src={props.country.flag} alt={`Flag of ${props.country.name}`} width="150px"></img>
+    </div>
+  )
+}
+
+const Weather = (props) => {
+  const [weather, setWeather] = useState({ temp: '', windSpeed: '', windDirection: '' })
+  const capital = props.country.capital
+  const api_key = process.env.REACT_APP_API_KEY
+  useEffect(() => {
+    axios
+      .get(`https://api.openweathermap.org/data/2.5/weather?q=${capital}&units=metric&appid=${api_key}`)
+      .then(response => {
+        setWeather({ temp: response.data.main.temp, windSpeed: response.data.wind.speed, windDirection: response.data.wind.deg })
+      })
+  }, [api_key, capital])
+
+  return (
+    <div>
+      <p>Temperature: {weather.temp} ºC</p>
+      <p>Wind: {weather.windSpeed} m/s, {weather.windDirection}º direction</p>
     </div>
   )
 }
