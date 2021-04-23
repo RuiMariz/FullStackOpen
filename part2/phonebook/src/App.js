@@ -43,11 +43,33 @@ const PersonForm = (props) => {
   )
 }
 
+const Notification = ({ message, type }) => {
+  if (message === null) {
+    return null
+  }
+
+  if (type === "error") {
+    return (
+      <div className="error">
+        {message}
+      </div>
+    )
+  }
+
+  return (
+    <div className="success">
+      {message}
+    </div>
+  )
+}
+
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [nameFilter, setNewNameFilter] = useState('')
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
 
   useEffect(() => {
     personService
@@ -71,32 +93,52 @@ const App = () => {
       personService
         .update(person.id, noteObject)
         .then(updatedPerson => {
+          createNotificationMessage(`${person.name}'s number was updated`, "success")
           setPersons(persons.map(p => p.id !== person.id ? p : updatedPerson))
           setNewName('')
           setNewNumber('')
         })
         .catch(error => {
           console.log(error)
+          createNotificationMessage(`${person.name} was already removed from server`, "error")
+          setPersons(persons.filter(p => p.id !== person.id))
         })
       return
     }
 
-    const noteObject = {
+    const personObject = {
       name: newName,
       number: newNumber
     }
 
     personService
-      .create(noteObject)
+      .create(personObject)
       .then(newPerson => {
+        createNotificationMessage(`${personObject.name} was added`, "success")
         setPersons(persons.concat(newPerson))
         setNewName('')
         setNewNumber('')
       })
       .catch(error => {
         console.log(error)
+        createNotificationMessage(`There was an error when adding ${personObject.name}`, "error")
       })
 
+  }
+
+  const createNotificationMessage = (message, type ) => {
+    if (type === "error") {
+      setErrorMessage(message)
+      setTimeout(() => {
+        setErrorMessage(null)
+      }, 5000)
+      return
+    }
+
+    setSuccessMessage(message)
+    setTimeout(() => {
+      setSuccessMessage(null)
+    }, 5000)
   }
 
   const handleNameChange = (event) => {
@@ -113,9 +155,14 @@ const App = () => {
       const person = persons.find(p => p.name === name)
       personService
         .remove(person.id)
-        .then(setPersons([...persons].filter(p => p.id !== person.id)))
+        .then(() => {
+          createNotificationMessage(`${person.name} was removed`, "success")
+          setPersons(persons.filter(p => p.id !== person.id))
+        })
         .catch(error => {
           console.log(error)
+          createNotificationMessage(`${person.name} was already removed from the server`, "error")
+          setPersons(persons.filter(p => p.id !== person.id))
         })
     }
   }
@@ -123,6 +170,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification className="success" message={successMessage} type="success" />
+      <Notification className="error" message={errorMessage} type="error" />
       <Filter nameFilter={nameFilter} handleNameFilterChange={handleNameFilterChange} />
       <h3>Add new number</h3>
       <PersonForm addPerson={addPerson} newName={newName} handleNameChange={handleNameChange}
