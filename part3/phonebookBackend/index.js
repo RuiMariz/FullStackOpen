@@ -1,7 +1,17 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
+
+morgan.token('body', function getBody(req) {
+    if (req.method === 'POST')
+        return JSON.stringify(req.body)
+    return ''
+})
+const morganFormat = (':method :url :status :res[content-length] - :response-time ms :body')
+
 app.use(express.json())
+app.use(morgan(morganFormat))
 
 let persons = [
     {
@@ -76,6 +86,12 @@ app.post('/api/persons', (request, response) => {
 
     response.json(person)
 })
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
 
 const generateId = () => {
     return Math.trunc(Math.random() * 1000000)
