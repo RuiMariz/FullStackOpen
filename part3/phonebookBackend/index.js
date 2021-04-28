@@ -1,6 +1,9 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+require('dotenv').config()
+
+const Person = require('./models/person')
 
 morgan.token('body', function getBody(req) {
     if (req.method === 'POST')
@@ -44,18 +47,22 @@ app.get('/info', (req, res) => {
 })
 
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({})
+        .then(persons => {
+            res.json(persons)
+        }).catch(error => {
+            console.log(error)
+        })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(p => p.id === id)
-
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
+    Person.findById(request.params.id)
+        .then(person => {
+            response.json(person)
+        })
+        .catch(error => {
+            response.status(404).end()
+        })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -74,18 +81,15 @@ app.post('/api/persons', (request, response) => {
     if (!body.number)
         return response.status(400).json({ error: 'number missing' })
 
-    if (persons.map(person => person.name).includes(body.name))
-        return response.status(400).json({ error: 'name already exists' })
-
-    const person = {
+    const person = new Person({
         name: body.name,
-        number: body.number,
-        id: generateId(),
-    }
+        number: body.number
+    })
 
-    persons = persons.concat(person)
-
-    response.json(person)
+    person.save().then(savedPerson => {
+        persons = persons.concat(person)
+        response.json(savedPerson)
+    })
 })
 
 const unknownEndpoint = (request, response) => {
