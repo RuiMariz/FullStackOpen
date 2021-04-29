@@ -100,8 +100,7 @@ const App = () => {
         })
         .catch(error => {
           console.log(error)
-          createNotificationMessage(`${person.name} was already removed from server`, "error")
-          setPersons(persons.filter(p => p.id !== person.id))
+          createNotificationMessage(error.response.data.error, "error")
         })
       return
     }
@@ -121,12 +120,12 @@ const App = () => {
       })
       .catch(error => {
         console.log(error)
-        createNotificationMessage(`There was an error when adding ${personObject.name}`, "error")
+        createNotificationMessage(error.response.data.error, "error")
       })
 
   }
 
-  const createNotificationMessage = (message, type ) => {
+  const createNotificationMessage = (message, type) => {
     if (type === "error") {
       setErrorMessage(message)
       setTimeout(() => {
@@ -161,7 +160,7 @@ const App = () => {
         })
         .catch(error => {
           console.log(error)
-          createNotificationMessage(`${person.name} was already removed from the server`, "error")
+          createNotificationMessage(error.response.data.error, "error")
           setPersons(persons.filter(p => p.id !== person.id))
         })
     }
