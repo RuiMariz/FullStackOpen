@@ -41,7 +41,6 @@ app.get('/api/persons/:id', (request, response, next) => {
             if (person) {
                 response.json(person)
             } else {
-                console.log(error)
                 response.status(404).end()
             }
         })
@@ -50,7 +49,7 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
     Person.findByIdAndRemove(request.params.id)
-        .then(result => {
+        .then(() => {
             response.status(204).end()
         })
         .catch(error => next(error))
@@ -99,7 +98,7 @@ const errorHandler = (error, request, response, next) => {
         return response.status(400).send({ error: 'malformatted id' })
     } else if (error.name === 'ValidationError') {
         return response.status(400).json({ error: error.message })
-    }else if (error.name === 'MongoError') {
+    } else if (error.name === 'MongoError') {
         return response.status(400).json({ error: error.message })
     }
 
