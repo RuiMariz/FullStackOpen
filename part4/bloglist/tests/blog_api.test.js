@@ -31,77 +31,78 @@ test('there are two blogs', async () => {
 
     expect(response.body).toHaveLength(helper.initialBlogs.length)
 })
+describe('post of blog', () => {
+    test('a valid blog can be added', async () => {
+        const newBlog = {
+            title: "Canonical string reduction",
+            author: "Edsger W. Dijkstra",
+            url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
+            likes: 12,
+        }
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(201)
+            .expect('Content-Type', /application\/json/)
 
-test('a valid blog can be added', async () => {
-    const newBlog = {
-        title: "Canonical string reduction",
-        author: "Edsger W. Dijkstra",
-        url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
-        likes: 12,
-    }
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(201)
-        .expect('Content-Type', /application\/json/)
+        const blogsAtEnd = await helper.blogsInDb()
+        const lastBlog = blogsAtEnd[blogsAtEnd.length - 1]
 
-    const blogsAtEnd = await helper.blogsInDb()
-    const lastBlog = blogsAtEnd[blogsAtEnd.length - 1]
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
+        expect(lastBlog.title).toContain(newBlog.title)
+        expect(lastBlog.author).toContain(newBlog.author)
+        expect(lastBlog.url).toContain(newBlog.url)
+        expect(lastBlog.likes).toEqual(newBlog.likes)
+    })
 
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
-    expect(lastBlog.title).toContain(newBlog.title)
-    expect(lastBlog.author).toContain(newBlog.author)
-    expect(lastBlog.url).toContain(newBlog.url)
-    expect(lastBlog.likes).toEqual(newBlog.likes)
-})
+    test('blog without content is not added', async () => {
+        const newBlog = {
+        }
 
-test('blog without content is not added', async () => {
-    const newBlog = {
-    }
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(400)
 
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(400)
+        const blogsAtEnd = await helper.blogsInDb()
 
-    const blogsAtEnd = await helper.blogsInDb()
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+    })
 
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
-})
+    test('blog without likes defaults to 0', async () => {
+        const newBlog = {
+            title: "Canonical string reduction",
+            author: "Edsger W. Dijkstra",
+            url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html"
+        }
 
-test('blog without likes defaults to 0', async () => {
-    const newBlog = {
-        title: "Canonical string reduction",
-        author: "Edsger W. Dijkstra",
-        url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html"
-    }
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(201)
+            .expect('Content-Type', /application\/json/)
 
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(201)
-        .expect('Content-Type', /application\/json/)
+        const blogsAtEnd = await helper.blogsInDb()
+        const lastBlog = blogsAtEnd[blogsAtEnd.length - 1]
 
-    const blogsAtEnd = await helper.blogsInDb()
-    const lastBlog = blogsAtEnd[blogsAtEnd.length - 1]
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
+        expect(lastBlog.likes).toEqual(0)
+    })
 
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
-    expect(lastBlog.likes).toEqual(0)
-})
+    test('a blog missing title and url returns 400', async () => {
+        const newBlog = {
+            author: "Edsger W. Dijkstra",
+            likes: 12,
+        }
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(400)
 
-test('a blog missing title and url returns 400', async () => {
-    const newBlog = {
-        author: "Edsger W. Dijkstra",
-        likes: 12,
-    }
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(400)
+        const blogsAtEnd = await helper.blogsInDb()
 
-    const blogsAtEnd = await helper.blogsInDb()
-
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+    })
 })
 
 test('a specific blog can be viewed', async () => {
@@ -128,10 +129,24 @@ test('a blog can be deleted', async () => {
     const blogsAtEnd = await helper.blogsInDb()
 
     expect(blogsAtEnd).toHaveLength(
-        helper.initialBlogs.length - 1
-    )
+        helper.initialBlogs.length - 1)
 
     expect(blogsAtEnd).not.toContainEqual(blogToDelete)
+})
+
+test('a blog can be updated', async () => {
+    const blogsAtBeginning = await helper.blogsInDb()
+    let blog = blogsAtBeginning[0]
+    blog.likes = 20
+    await api
+        .put(`/api/blogs/${blog.id}`)
+        .send(blog)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    const updatedBlog = blogsAtEnd[0]
+    expect(updatedBlog.likes).toEqual(blog.likes)
 })
 
 afterAll(() => {
