@@ -3,41 +3,76 @@ const supertest = require('supertest')
 const app = require('../app')
 const api = supertest(app)
 const Blog = require('../models/blog')
+const User = require('../models/user')
 const helper = require('./test_helper')
 
 beforeEach(async () => {
     await Blog.deleteMany({})
+    await User.deleteMany({})
+
+    const userObjects = helper.initialUsers
+        .map(user => new User(user))
+    const promiseUserArray = userObjects.map(user => user.save())
+    await Promise.all(promiseUserArray)
 
     const blogObjects = helper.initialBlogs
         .map(blog => new Blog(blog))
-    const promiseArray = blogObjects.map(blog => blog.save())
-    await Promise.all(promiseArray)
+    const promiseBlogArray = blogObjects.map(blog => blog.save())
+    await Promise.all(promiseBlogArray)
 })
 
-test('blogs are returned as json', async () => {
-    await api
-        .get('/api/blogs')
-        .expect(200)
-        .expect('Content-Type', /application\/json/)
-})
+describe('get blogs', () => {
+    test('blogs are returned as json', async () => {
+        await api
+            .get('/api/blogs')
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+    })
 
-test('property id exists', async () => {
-    const blogsAtEnd = await helper.blogsInDb()
-    expect(blogsAtEnd[0].id).toBeDefined()
-})
+    test('property id exists', async () => {
+        const blogsAtEnd = await helper.blogsInDb()
+        expect(blogsAtEnd[0].id).toBeDefined()
+    })
 
-test('there are two blogs', async () => {
-    const response = await api.get('/api/blogs')
+    test('there are two blogs', async () => {
+        const response = await api.get('/api/blogs')
 
-    expect(response.body).toHaveLength(helper.initialBlogs.length)
-})
-describe('post of blog', () => {
-    test('a valid blog can be added', async () => {
+        expect(response.body).toHaveLength(helper.initialBlogs.length)
+    })
+
+    test('blogs contain populated users', async () => {
+        const user = (await helper.usersInDb())[0]
         const newBlog = {
             title: "Canonical string reduction",
             author: "Edsger W. Dijkstra",
             url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
             likes: 12,
+            userId: user.id
+        }
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(201)
+
+        const body = ((await api.get('/api/blogs').expect(200)).body)
+        blog = body[body.length - 1]
+        expect(blog.user.name).toContain(user.name)
+        expect(blog.user.username).toContain(user.username)
+        expect(blog.user.id).toContain(user.id)
+        expect(blog.user.blogs).toBe(undefined)
+    })
+
+
+})
+describe('post of blog', () => {
+    test('a valid blog can be added', async () => {
+        const userId = (await helper.usersInDb())[0].id
+        const newBlog = {
+            title: "Canonical string reduction",
+            author: "Edsger W. Dijkstra",
+            url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
+            likes: 12,
+            userId: userId
         }
         await api
             .post('/api/blogs')
@@ -56,7 +91,9 @@ describe('post of blog', () => {
     })
 
     test('blog without content is not added', async () => {
+        const userId = (await helper.usersInDb())[0].id
         const newBlog = {
+            userId: userId
         }
 
         await api
@@ -70,10 +107,12 @@ describe('post of blog', () => {
     })
 
     test('blog without likes defaults to 0', async () => {
+        const userId = (await helper.usersInDb())[0].id
         const newBlog = {
             title: "Canonical string reduction",
             author: "Edsger W. Dijkstra",
-            url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html"
+            url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
+            userId: userId
         }
 
         await api
@@ -90,9 +129,11 @@ describe('post of blog', () => {
     })
 
     test('a blog missing title and url returns 400', async () => {
+        const userId = (await helper.usersInDb())[0].id
         const newBlog = {
             author: "Edsger W. Dijkstra",
             likes: 12,
+            userId: userId
         }
         await api
             .post('/api/blogs')
