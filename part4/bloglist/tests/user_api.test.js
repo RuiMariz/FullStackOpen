@@ -2,7 +2,6 @@ const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 const api = supertest(app)
-const bcrypt = require('bcrypt')
 const User = require('../models/user')
 const helper = require('./test_helper')
 
@@ -30,22 +29,14 @@ describe('get users', () => {
     })
 
     test('users contains populated blogs', async () => {
-        const usersAtStart = await helper.usersInDb()
-        const userId = usersAtStart[0].id
         const newBlog = {
             title: "Canonical string reduction",
             author: "Edsger W. Dijkstra",
             url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
             likes: 12,
-            userId: userId
+            userId: await helper.firstUserId()
         }
-        const user = {
-            username: "mluukkai",
-            password: "12345678"
-        }
-        const token = (await api
-            .post('/api/login')
-            .send(user)).body.token
+        const token = await helper.firstUserToken()
         await api
             .post('/api/blogs')
             .set('Authorization', `bearer ${token}`)

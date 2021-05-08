@@ -18,9 +18,12 @@ beforeAll(async () => {
 
 beforeEach(async () => {
     await Blog.deleteMany({})
-
+    const userId = await helper.firstUserId()
     const blogObjects = helper.initialBlogs
         .map(blog => new Blog(blog))
+    for (let blog of blogObjects) {
+        blog.user = userId
+    }
     const promiseBlogArray = blogObjects.map(blog => blog.save())
     await Promise.all(promiseBlogArray)
 })
@@ -40,61 +43,43 @@ describe('get blogs', () => {
 
     test('there are two blogs', async () => {
         const response = await api.get('/api/blogs')
-
         expect(response.body).toHaveLength(helper.initialBlogs.length)
     })
 
     test('blogs contain populated users', async () => {
-        const usersAtStart = await helper.usersInDb()
-        const userId = usersAtStart[0].id
-        const newBlog = {
-            title: "Canonical string reduction",
-            author: "Edsger W. Dijkstra",
-            url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
-            likes: 12,
-            userId: userId
-        }
-        const user = {
-            username: "mluukkai",
-            password: "12345678"
-        }
-        const token = (await api
-            .post('/api/login')
-            .send(user)).body.token
-        await api
-            .post('/api/blogs')
-            .send(newBlog)
-            .set('Authorization', `bearer ${token}`)
-            .expect(201)
-
+        const user = (await helper.usersInDb())[0]
         const body = ((await api.get('/api/blogs').expect(200)).body)
-        blog = body[body.length - 1]
-        expect(blog.user.name).toContain(usersAtStart[0].name)
-        expect(blog.user.username).toContain(usersAtStart[0].username)
-        expect(blog.user.id).toContain(usersAtStart[0].id)
+        const blog = body[0]
+        expect(blog.user.name).toContain(user.name)
+        expect(blog.user.username).toContain(user.username)
+        expect(blog.user.id).toContain(user.id)
         expect(blog.user.blogs).toBe(undefined)
     })
 
+    test('a specific blog can be viewed', async () => {
+        const blogToView = (await helper.blogsInDb())[0]
+        const resultBlog = await api
+            .get(`/api/blogs/${blogToView.id}`)
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
 
+        expect(resultBlog.body.title).toContain(blogToView.title)
+        expect(resultBlog.body.author).toContain(blogToView.author)
+        expect(resultBlog.body.url).toContain(blogToView.url)
+        expect(resultBlog.body.likes).toBe(blogToView.likes)
+        expect(resultBlog.body.user).toContain(blogToView.user)
+    })
 })
 describe('post of blog', () => {
     test('a valid blog can be added', async () => {
-        const usersAtStart = await helper.usersInDb()
-        const userId = usersAtStart[0].id
         const newBlog = {
             title: "Canonical string reduction",
             author: "Edsger W. Dijkstra",
             url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
             likes: 12,
-            userId: userId
+            userId: await helper.firstUserId()
         }
-        const user = {
-            username: "mluukkai",
-            password: "12345678"
-        }
-        const token = (await api
-            .post('/api/login')
-            .send(user)).body.token
+        const token = await helper.firstUserToken()
         await api
             .post('/api/blogs')
             .set('Authorization', `bearer ${token}`)
@@ -113,13 +98,12 @@ describe('post of blog', () => {
     })
 
     test('blog without token returns 401', async () => {
-        const userId = (await helper.usersInDb())[0].id
         const newBlog = {
             title: "Canonical string reduction",
             author: "Edsger W. Dijkstra",
             url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
             likes: 12,
-            userId: userId
+            userId: await helper.firstUserId()
         }
 
         await api
@@ -133,17 +117,10 @@ describe('post of blog', () => {
     })
 
     test('blog without content is not added', async () => {
-        const userId = (await helper.usersInDb())[0].id
         const newBlog = {
-            userId: userId
+            userId: await helper.firstUserId()
         }
-        const user = {
-            username: "mluukkai",
-            password: "12345678"
-        }
-        const token = (await api
-            .post('/api/login')
-            .send(user)).body.token
+        const token = await helper.firstUserToken()
 
         await api
             .post('/api/blogs')
@@ -157,20 +134,13 @@ describe('post of blog', () => {
     })
 
     test('blog without likes defaults to 0', async () => {
-        const userId = (await helper.usersInDb())[0].id
         const newBlog = {
             title: "Canonical string reduction",
             author: "Edsger W. Dijkstra",
             url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
-            userId: userId
+            userId: await helper.firstUserId()
         }
-        const user = {
-            username: "mluukkai",
-            password: "12345678"
-        }
-        const token = (await api
-            .post('/api/login')
-            .send(user)).body.token
+        const token = await helper.firstUserToken()
 
         await api
             .post('/api/blogs')
@@ -187,19 +157,12 @@ describe('post of blog', () => {
     })
 
     test('a blog missing title and url returns 400', async () => {
-        const userId = (await helper.usersInDb())[0].id
         const newBlog = {
             author: "Edsger W. Dijkstra",
             likes: 12,
-            userId: userId
+            userId: await helper.firstUserId()
         }
-        const user = {
-            username: "mluukkai",
-            password: "12345678"
-        }
-        const token = (await api
-            .post('/api/login')
-            .send(user)).body.token
+        const token = await helper.firstUserToken()
 
         await api
             .post('/api/blogs')
@@ -213,58 +176,23 @@ describe('post of blog', () => {
     })
 })
 
-test('a specific blog can be viewed', async () => {
-    const blogsAtStart = await helper.blogsInDb()
-
-    const blogToView = blogsAtStart[0]
-
-    const resultBlog = await api
-        .get(`/api/blogs/${blogToView.id}`)
-        .expect(200)
-        .expect('Content-Type', /application\/json/)
-
-    expect(resultBlog.body).toEqual(blogToView)
-})
-
 test('a blog can be deleted', async () => {
-    const usersAtStart = await helper.usersInDb()
-    const userId = usersAtStart[0].id
-    const user = {
-        username: "mluukkai",
-        password: "12345678"
-    }
-    const token = (await api
-        .post('/api/login')
-        .send(user)).body.token
-
-    const newBlog = {
-        title: "Canonical string reduction",
-        author: "Edsger W. Dijkstra",
-        url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
-        likes: 20,
-        userId: userId
-    }
-    await api
-        .post('/api/blogs')
-        .set('Authorization', `bearer ${token}`)
-        .send(newBlog)
-        .expect(201)
-    const blogs = await helper.blogsInDb()
+    const blogsAtBeginning = await helper.blogsInDb()
+    const token = await helper.firstUserToken()
 
     await api
-        .delete(`/api/blogs/${blogs[blogs.length - 1].id}`)
+        .delete(`/api/blogs/${blogsAtBeginning[0].id}`)
         .set('Authorization', `bearer ${token}`)
         .expect(204)
 
     const blogsAtEnd = await helper.blogsInDb()
 
     expect(blogsAtEnd).toHaveLength(
-        helper.initialBlogs.length)
+        blogsAtBeginning.length - 1)
 })
 
 test('a blog can be updated', async () => {
-    const blogsAtBeginning = await helper.blogsInDb()
-    let blog = blogsAtBeginning[0]
+    let blog = (await helper.blogsInDb())[0]
     blog.likes = 20
     await api
         .put(`/api/blogs/${blog.id}`)
@@ -272,8 +200,7 @@ test('a blog can be updated', async () => {
         .expect(200)
         .expect('Content-Type', /application\/json/)
 
-    const blogsAtEnd = await helper.blogsInDb()
-    const updatedBlog = blogsAtEnd[0]
+    const updatedBlog = (await helper.blogsInDb())[0]
     expect(updatedBlog.likes).toEqual(blog.likes)
 })
 
