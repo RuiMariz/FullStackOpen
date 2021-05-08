@@ -9,13 +9,11 @@ const helper = require('./test_helper')
 beforeEach(async () => {
     await User.deleteMany({})
 
-    const passwordHash = await bcrypt.hash('sekret', 10)
-    const user = new User({
-        username: 'root',
-        passwordHash
-    })
-
-    await user.save()
+    for (let user of helper.initialUsers) {
+        await api
+            .post("/api/users")
+            .send(user)
+    }
 })
 
 describe('get users', () => {
@@ -32,8 +30,8 @@ describe('get users', () => {
     })
 
     test('users contains populated blogs', async () => {
-        const users = await helper.usersInDb()
-        const userId = users[0].id
+        const usersAtStart = await helper.usersInDb()
+        const userId = usersAtStart[0].id
         const newBlog = {
             title: "Canonical string reduction",
             author: "Edsger W. Dijkstra",
@@ -41,9 +39,18 @@ describe('get users', () => {
             likes: 12,
             userId: userId
         }
+        const user = {
+            username: "mluukkai",
+            password: "12345678"
+        }
+        const token = (await api
+            .post('/api/login')
+            .send(user)).body.token
         await api
             .post('/api/blogs')
+            .set('Authorization', `bearer ${token}`)
             .send(newBlog)
+            .expect(201)
         const usersAtEnd = (await api
             .get('/api/users')
             .expect(200)).body
@@ -63,7 +70,7 @@ describe('post user', () => {
         const usersAtStart = await helper.usersInDb()
 
         const newUser = {
-            username: 'mluukkai',
+            username: 'mluukkai2',
             name: 'Matti Luukkainen',
             password: 'salainen'
         }
@@ -85,7 +92,7 @@ describe('post user', () => {
         const usersAtStart = await helper.usersInDb()
 
         const newUser = {
-            username: 'root',
+            username: 'UserName',
             name: 'Superuser',
             password: 'salainen',
         }
