@@ -17,7 +17,7 @@ const App = () => {
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
-      setBlogs(blogs)
+      setBlogs(blogs.sort((a, b) => a.likes < b.likes ? 1 : -1))
     )
   }, [])
   useEffect(() => {
@@ -28,6 +28,10 @@ const App = () => {
       blogService.setToken(user.token)
     }
   }, [])
+
+  const setAndSortBlogs = (blogs) => {
+    setBlogs([...blogs].sort((a, b) => a.likes < b.likes ? 1 : -1))
+  }
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -75,7 +79,7 @@ const App = () => {
       .create(blogObject)
       .then(returnedBlog => {
         returnedBlog.user = user
-        setBlogs(blogs.concat(returnedBlog))
+        setAndSortBlogs(blogs.concat(returnedBlog))
         showSuccessMessage("Blog added")
       })
   }
@@ -84,8 +88,19 @@ const App = () => {
     blogService
       .update(blogObject.id, blogObject)
       .then(returnedBlog => {
-        setBlogs(blogs.map(blog => blog.id !== returnedBlog.id ? blog : returnedBlog))
+        setAndSortBlogs(blogs.map(blog => blog.id !== returnedBlog.id ? blog : returnedBlog))
         showSuccessMessage("Blog updated")
+      })
+  }
+
+  const removeBlog = (blogObject) => {
+    if (!window.confirm(`Remove ${blogObject.title} by ${blogObject.author}`))
+      return
+    blogService
+      .remove(blogObject.id)
+      .then(() => {
+        setBlogs(blogs.filter(blog => blog.id !== blogObject.id))
+        showSuccessMessage("Blog deleted")
       })
   }
 
@@ -132,7 +147,7 @@ const App = () => {
           {blogForm()}
         </div>
       }
-      <BlogsList blogs={blogs} updateBlog={updateBlog} />
+      <BlogsList blogs={blogs} updateBlog={updateBlog} removeBlog={removeBlog} user={user} />
     </div>
   )
 }

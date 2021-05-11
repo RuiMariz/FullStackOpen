@@ -1,7 +1,7 @@
 import React from 'react'
 import Togglable from './Togglable'
 
-const Blog = ({ blog, updateBlog }) => {
+const Blog = ({ blog, updateBlog, removeBlog, user }) => {
   return (
     <div>
       {blog.title} {blog.author}
@@ -9,6 +9,10 @@ const Blog = ({ blog, updateBlog }) => {
         {blog.url}<br />
         likes {blog.likes}<button onClick={() => { addLike(blog, updateBlog) }}>like</button><br />
         {blog.user.username}<br />
+        {user.username === blog.user.username ?
+          <div>
+            <button onClick={() => { removeBlog(blog) }}>remove</button><br />
+          </div>:<div/>}
       </Togglable>
       <hr />
     </div>
