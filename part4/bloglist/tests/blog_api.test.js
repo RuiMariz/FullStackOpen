@@ -204,6 +204,6 @@ test('a blog can be updated', async () => {
     expect(updatedBlog.likes).toEqual(blog.likes)
 })
 
-afterAll(() => {
+afterAll(async() => {
     mongoose.connection.close()
 })

@@ -3,6 +3,7 @@ const supertest = require('supertest')
 const app = require('../app')
 const api = supertest(app)
 const User = require('../models/user')
+const Blog=require('../models/blog')
 const helper = require('./test_helper')
 
 beforeEach(async () => {
@@ -138,6 +139,15 @@ describe('post user', () => {
     })
 })
 
-afterAll(() => {
+afterAll(async () => {
+    await Blog.deleteMany({})
+    const userId = await helper.firstUserId()
+    const blogObjects = helper.initialBlogs
+        .map(blog => new Blog(blog))
+    for (let blog of blogObjects) {
+        blog.user = userId
+    }
+    const promiseBlogArray = blogObjects.map(blog => blog.save())
+    await Promise.all(promiseBlogArray)
     mongoose.connection.close()
 })

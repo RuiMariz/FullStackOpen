@@ -69,13 +69,23 @@ const App = () => {
     showSuccessMessage("Logged out")
   }
 
-  const addBlog = (noteObject) => {
+  const addBlog = (blogObject) => {
     blogFormRef.current.toggleVisibility()
     blogService
-      .create(noteObject)
+      .create(blogObject)
       .then(returnedBlog => {
+        returnedBlog.user = user
         setBlogs(blogs.concat(returnedBlog))
         showSuccessMessage("Blog added")
+      })
+  }
+
+  const updateBlog = (blogObject) => {
+    blogService
+      .update(blogObject.id, blogObject)
+      .then(returnedBlog => {
+        setBlogs(blogs.map(blog => blog.id !== returnedBlog.id ? blog : returnedBlog))
+        showSuccessMessage("Blog updated")
       })
   }
 
@@ -122,7 +132,7 @@ const App = () => {
           {blogForm()}
         </div>
       }
-      <BlogsList blogs={blogs} />
+      <BlogsList blogs={blogs} updateBlog={updateBlog} />
     </div>
   )
 }
