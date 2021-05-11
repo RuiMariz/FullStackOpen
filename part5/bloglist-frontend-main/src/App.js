@@ -10,6 +10,7 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
 
   const [newTitle, setNewTitle] = useState('')
   const [newAuthor, setNewAuthor] = useState('')
@@ -43,18 +44,31 @@ const App = () => {
       blogService.setToken(user.token)
       setUsername('')
       setPassword('')
+      showSuccessMessage("Logged in")
     } catch (exception) {
       console.log(exception)
-      setErrorMessage('Wrong credentials')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      showErrorMessage("Wrong credentials")
     }
+  }
+
+  const showErrorMessage = (string) => {
+    setErrorMessage(string)
+    setTimeout(() => {
+      setErrorMessage(null)
+    }, 5000)
+  }
+
+  const showSuccessMessage = (string) => {
+    setSuccessMessage(string)
+    setTimeout(() => {
+      setSuccessMessage(null)
+    }, 5000)
   }
 
   const handleLogOut = () => {
     window.localStorage.removeItem('loggedBlogAppUser')
     setUser(null)
+    showSuccessMessage("Logged out")
   }
 
   const addBlog = (event) => {
@@ -63,9 +77,9 @@ const App = () => {
       title: newTitle,
       author: newAuthor,
       url: newUrl,
-      likes:newLikes
+      likes: newLikes
     }
-
+    try{
     blogService
       .create(blogObject)
       .then(returnedBlog => {
@@ -74,7 +88,12 @@ const App = () => {
         setNewAuthor('')
         setNewUrl('')
         setNewLikes('')
+        showSuccessMessage("Blog added")
       })
+    }catch(exception){
+      console.log(exception)
+      showErrorMessage("Failed to add blog")
+    }
   }
 
   const handleTitleChange = (event) => {
@@ -121,10 +140,10 @@ const App = () => {
   const blogForm = () => (
     <form onSubmit={addBlog}>
       <h2>Create New Blog</h2>
-      title<input value={newTitle} onChange={handleTitleChange} /><br/>
-      author<input value={newAuthor} onChange={handleAuthorChange} /><br/>
-      url<input type="url" value={newUrl} onChange={handleUrlChange} /><br/>
-      likes<input type="number" value={newLikes} onChange={handleLikesChange} /><br/>
+      title<input value={newTitle} onChange={handleTitleChange} /><br />
+      author<input value={newAuthor} onChange={handleAuthorChange} /><br />
+      url<input type="url" value={newUrl} onChange={handleUrlChange} /><br />
+      likes<input type="number" value={newLikes} onChange={handleLikesChange} /><br />
       <button type="submit">save</button>
     </form>
   )
@@ -132,8 +151,8 @@ const App = () => {
   return (
     <div>
       <h1>Blogs</h1>
-      <Notification message={errorMessage} />
-
+      <Notification message={errorMessage} type={"error"} />
+      <Notification message={successMessage} type={"success"} />
       {user === null ?
         loginForm() :
         <div>

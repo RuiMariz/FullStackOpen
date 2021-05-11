@@ -3,7 +3,7 @@ h1 {
     font-style: italic;
 }
 
-.note {
+.blog {
     color: grey;
     padding-top: 3px;
     font-size: 15px;
@@ -11,6 +11,16 @@ h1 {
 
 .error {
     color: red;
+    background: lightgrey;
+    font-size: 20px;
+    border-style: solid;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.success {
+    color: green;
     background: lightgrey;
     font-size: 20px;
     border-style: solid;
