@@ -9,10 +9,10 @@ const Blog = ({ blog, updateBlog, removeBlog, user }) => {
         {blog.url}<br />
         likes {blog.likes}<button onClick={() => { addLike(blog, updateBlog) }}>like</button><br />
         {blog.user.username}<br />
-        {user.username === blog.user.username ?
+        {user !== null && user.username === blog.user.username ?
           <div>
             <button onClick={() => { removeBlog(blog) }}>remove</button><br />
-          </div>:<div/>}
+          </div> : <div />}
       </Togglable>
       <hr />
     </div>

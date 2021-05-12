@@ -5,6 +5,7 @@ import loginService from './services/login'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
+import LoginForm from './components/LoginForm'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -44,12 +45,10 @@ const App = () => {
       )
       setUser(user)
       blogService.setToken(user.token)
-      setUsername('')
-      setPassword('')
-      showSuccessMessage("Logged in")
+      showSuccessMessage('Logged in')
     } catch (exception) {
       console.log(exception)
-      showErrorMessage("Wrong credentials")
+      showErrorMessage('Wrong credentials')
     }
   }
 
@@ -70,7 +69,7 @@ const App = () => {
   const handleLogOut = () => {
     window.localStorage.removeItem('loggedBlogAppUser')
     setUser(null)
-    showSuccessMessage("Logged out")
+    showSuccessMessage('Logged out')
   }
 
   const addBlog = (blogObject) => {
@@ -80,7 +79,7 @@ const App = () => {
       .then(returnedBlog => {
         returnedBlog.user = user
         setAndSortBlogs(blogs.concat(returnedBlog))
-        showSuccessMessage("Blog added")
+        showSuccessMessage('Blog added')
       })
   }
 
@@ -89,7 +88,7 @@ const App = () => {
       .update(blogObject.id, blogObject)
       .then(returnedBlog => {
         setAndSortBlogs(blogs.map(blog => blog.id !== returnedBlog.id ? blog : returnedBlog))
-        showSuccessMessage("Blog updated")
+        showSuccessMessage('Blog updated')
       })
   }
 
@@ -100,48 +99,24 @@ const App = () => {
       .remove(blogObject.id)
       .then(() => {
         setBlogs(blogs.filter(blog => blog.id !== blogObject.id))
-        showSuccessMessage("Blog deleted")
+        showSuccessMessage('Blog deleted')
       })
   }
 
   const blogForm = () => (
-    <Togglable buttonLabel="new blog" ref={blogFormRef}>
+    <Togglable buttonLabel='new blog' ref={blogFormRef}>
       <BlogForm createBlog={addBlog} />
     </Togglable>
-  )
-
-  const loginForm = () => (
-    <form onSubmit={handleLogin}>
-      <div>
-        <h2>Log in</h2>
-        username
-          <input
-          type="text"
-          value={username}
-          name="Username"
-          onChange={({ target }) => setUsername(target.value)}
-        />
-      </div>
-      <div>
-        password
-          <input
-          type="password"
-          value={password}
-          name="Password"
-          onChange={({ target }) => setPassword(target.value)}
-        />
-      </div>
-      <button type="submit">login</button>
-    </form>
   )
 
   return (
     <div>
       <h1>Blogs</h1>
-      <Notification message={errorMessage} type={"error"} />
-      <Notification message={successMessage} type={"success"} />
+      <Notification message={errorMessage} type={'error'} />
+      <Notification message={successMessage} type={'success'} />
       {user === null ?
-        loginForm() :
+        <LoginForm handleLogin={handleLogin} username={username} password={password}
+          setUsername={setUsername} setPassword={setPassword} /> :
         <div>
           <p>{user.name} logged in <button onClick={() => handleLogOut()}>logout</button></p>
           {blogForm()}
