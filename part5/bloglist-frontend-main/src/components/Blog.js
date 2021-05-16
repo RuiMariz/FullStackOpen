@@ -11,7 +11,7 @@ const Blog = ({ blog, updateBlog, removeBlog, user }) => {
         {blog.user.username}<br />
         {user !== null && user.username === blog.user.username ?
           <div>
-            <button onClick={() => { removeBlog(blog) }}>remove</button><br />
+            <button onClick={() => { removeBlog(blog) }} className="removeButton">remove</button><br />
           </div> : <div />}
       </Togglable>
       <hr />

@@ -118,7 +118,7 @@ const App = () => {
         <LoginForm handleLogin={handleLogin} username={username} password={password}
           setUsername={setUsername} setPassword={setPassword} /> :
         <div>
-          <p>{user.name} logged in <button onClick={() => handleLogOut()}>logout</button></p>
+          <p>{user.name} logged in <button onClick={() => handleLogOut()} className="logoutButton">logout</button></p>
           {blogForm()}
         </div>
       }
