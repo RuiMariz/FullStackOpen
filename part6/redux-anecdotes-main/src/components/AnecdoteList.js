@@ -24,10 +24,20 @@ const AnecdoteList = () => {
     showNotification(`you voted '${anecdote.content}'`, dispatch)
   }
 
+  const filter = useSelector(state => state.filter)
   const anecdotes = useSelector(state => state.anecdotes)
+  let filteredAnecdotes
+  if (filter) {
+    filteredAnecdotes = anecdotes.filter((anecdote) => {
+      return anecdote.content.toLowerCase().includes(filter.toLowerCase())
+    })
+  } else {
+    filteredAnecdotes = anecdotes
+  }
+  
   return (
     <ul>
-      {anecdotes.map(anecdote =>
+      {filteredAnecdotes.map(anecdote =>
         <Anecdote anecdote={anecdote} handleClick={() => vote(anecdote)} key={anecdote.id} />
       )}
     </ul>
