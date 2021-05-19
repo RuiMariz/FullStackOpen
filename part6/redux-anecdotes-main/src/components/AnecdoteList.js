@@ -6,7 +6,7 @@ import { showNotification } from '../reducers/notificationReducer'
 const AnecdoteList = () => {
   const Anecdote = ({ anecdote, handleClick }) => {
     return (
-      <li key={anecdote.id}>
+      <li>
         <div>
           {anecdote.content}
         </div>
