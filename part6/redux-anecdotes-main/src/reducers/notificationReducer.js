@@ -7,15 +7,18 @@ const notificationReducer = (state = null, action) => {
     default: return state
   }
 }
+
+let lastTimeoutID = null
 export const createNotification = (notification, seconds) => {
   return async dispatch => {
+    clearTimeout(lastTimeoutID)
     dispatch({
       type: 'SHOW_NOTIFICATION',
       data: {
         notification
       }
     })
-    setTimeout(() => {
+    lastTimeoutID = setTimeout(() => {
       dispatch({
         type: 'SHOW_NOTIFICATION',
         data: null
