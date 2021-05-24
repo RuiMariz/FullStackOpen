@@ -26,7 +26,7 @@ const initialUsers = [
         password: "12345678"
     },
     {
-        username: "UserName",
+        username: "username",
         name: "Normal name",
         password: "password"
     }

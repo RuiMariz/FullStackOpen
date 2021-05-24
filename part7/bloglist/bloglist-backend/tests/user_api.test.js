@@ -62,9 +62,9 @@ describe('post user', () => {
         const usersAtStart = await helper.usersInDb()
 
         const newUser = {
-            username: 'mluukkai2',
-            name: 'Matti Luukkainen',
-            password: 'salainen'
+            username: 'username2',
+            name: 'Normal Name',
+            password: 'password'
         }
 
         await api
@@ -84,7 +84,7 @@ describe('post user', () => {
         const usersAtStart = await helper.usersInDb()
 
         const newUser = {
-            username: 'UserName',
+            username: 'username',
             name: 'Superuser',
             password: 'salainen',
         }

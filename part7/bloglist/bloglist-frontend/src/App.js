@@ -7,32 +7,32 @@ import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
 import LoginForm from './components/LoginForm'
 import { showNotification } from './reducers/notificationReducer'
-import { useDispatch } from 'react-redux'
+import { logInUser, logOutUser } from './reducers/userReducer'
+import { useDispatch, useSelector } from 'react-redux'
+import { initBlogs, createBlog, removeBlogRedux, updateBlogRedux } from './reducers/blogsReducer'
+
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
   const blogFormRef = useRef()
 
+  const dispatch = useDispatch()
+
   useEffect(() => {
-    blogService.getAll().then(blogs =>
-      setBlogs(blogs.sort((a, b) => a.likes < b.likes ? 1 : -1))
-    )
+    blogService.getAll()
+      .then(blogs =>
+        dispatch(initBlogs(blogs))
+      )
   }, [])
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
-      setUser(user)
+      dispatch(logInUser(user))
       blogService.setToken(user.token)
     }
   }, [])
-
-  const setAndSortBlogs = (blogs) => {
-    setBlogs([...blogs].sort((a, b) => a.likes < b.likes ? 1 : -1))
-  }
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -43,7 +43,7 @@ const App = () => {
       window.localStorage.setItem(
         'loggedBlogAppUser', JSON.stringify(user)
       )
-      setUser(user)
+      dispatch(logInUser(user))
       blogService.setToken(user.token)
       showSuccessMessage('Logged in')
     } catch (exception) {
@@ -51,8 +51,6 @@ const App = () => {
       showErrorMessage('Wrong credentials')
     }
   }
-
-  const dispatch = useDispatch()
 
   const showErrorMessage = (string) => {
     showNotification(string, 'error', dispatch)
@@ -64,7 +62,8 @@ const App = () => {
 
   const handleLogOut = () => {
     window.localStorage.removeItem('loggedBlogAppUser')
-    setUser(null)
+    dispatch(logOutUser())
+    blogService.setToken(null)
     showSuccessMessage('Logged out')
   }
 
@@ -74,7 +73,7 @@ const App = () => {
       .create(blogObject)
       .then(returnedBlog => {
         returnedBlog.user = user
-        setAndSortBlogs(blogs.concat(returnedBlog))
+        dispatch(createBlog(returnedBlog))
         showSuccessMessage('Blog added')
       })
   }
@@ -83,7 +82,7 @@ const App = () => {
     blogService
       .update(blogObject.id, blogObject)
       .then(returnedBlog => {
-        setAndSortBlogs(blogs.map(blog => blog.id !== returnedBlog.id ? blog : returnedBlog))
+        dispatch(updateBlogRedux(returnedBlog))
         showSuccessMessage('Blog updated')
       })
   }
@@ -94,7 +93,7 @@ const App = () => {
     blogService
       .remove(blogObject.id)
       .then(() => {
-        setBlogs(blogs.filter(blog => blog.id !== blogObject.id))
+        dispatch(removeBlogRedux(blogObject))
         showSuccessMessage('Blog deleted')
       })
   }
@@ -104,6 +103,9 @@ const App = () => {
       <BlogForm createBlog={addBlog} />
     </Togglable>
   )
+
+  const user = useSelector(state => state.user)
+  const blogs = useSelector(state => state.blogs)
 
   return (
     <div>
