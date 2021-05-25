@@ -7,9 +7,9 @@ const setToken = newToken => {
   token = `bearer ${newToken}`
 }
 
-const getAll = () => {
-  const request = axios.get(baseUrl)
-  return request.then(response => response.data)
+const getAll = async () => {
+  const response = await axios.get(baseUrl)
+  return response.data
 }
 
 const create = async newObject => {
@@ -21,19 +21,32 @@ const create = async newObject => {
   return response.data
 }
 
-const update = (id, newObject) => {
-  const request = axios.put(`${baseUrl}/${id}`, newObject)
-  return request.then(response => response.data)
-}
-
-const remove = (id) => {
+const update = async (id, newObject) => {
   const config = {
     headers: { Authorization: token },
   }
-  const request = axios.delete(`${baseUrl}/${id}`,config)
-  return request.then(response => response.data)
+  const response = await axios.put(`${baseUrl}/${id}`, newObject, config)
+  return response.data
 }
 
-const exports = { getAll, setToken, create, update, remove }
+const addComment = async (id, Object) => {
+  const response = await axios.post(`${baseUrl}/${id}/comments`, Object)
+  return response.data
+}
+
+const likeBlog = async (id) => {
+  const response = await axios.post(`${baseUrl}/${id}/likes`)
+  return response.data
+}
+
+const remove = async (id) => {
+  const config = {
+    headers: { Authorization: token },
+  }
+  const response = await axios.delete(`${baseUrl}/${id}`, config)
+  return response.data
+}
+
+const exports = { getAll, setToken, create, update, addComment, likeBlog, remove }
 
 export default exports

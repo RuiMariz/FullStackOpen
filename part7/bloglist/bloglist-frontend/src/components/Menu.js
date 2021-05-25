@@ -30,10 +30,10 @@ const Menu = (props) => {
           <Users />
         </Route>
         <Route path="/blogs/:id">
-          <Blog blog={blog} updateBlog={props.updateBlog} removeBlog={props.removeBlog} />
+          <Blog blog={blog} likeBlog={props.likeBlog} removeBlog={props.removeBlog} />
         </Route>
         <Route path="/">
-          <BlogsList updateBlog={props.updateBlog} removeBlog={props.removeBlog} blogForm={props.blogForm()} />
+          <BlogsList blogForm={props.blogForm()} />
         </Route>
       </Switch>
     </div>

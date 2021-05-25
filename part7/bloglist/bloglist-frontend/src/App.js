@@ -12,11 +12,13 @@ import { initBlogs, createBlog, removeBlogRedux, updateBlogRedux } from './reduc
 import { initUsers } from './reducers/usersReducer'
 import Menu from './components/Menu'
 import { showErrorMessage, showSuccessMessage } from './components/Notification'
+import { useHistory, } from 'react-router-dom'
 
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const blogFormRef = useRef()
+  const history = useHistory()
 
   const dispatch = useDispatch()
 
@@ -77,9 +79,9 @@ const App = () => {
       })
   }
 
-  const updateBlog = (blogObject) => {
+  const likeBlog = (blogObject) => {
     blogService
-      .update(blogObject.id, blogObject)
+      .likeBlog(blogObject.id)
       .then(returnedBlog => {
         dispatch(updateBlogRedux(returnedBlog))
         showSuccessMessage('Blog updated', dispatch)
@@ -94,6 +96,7 @@ const App = () => {
       .then(() => {
         dispatch(removeBlogRedux(blogObject))
         showSuccessMessage('Blog deleted', dispatch)
+        history.push('/')
       })
   }
 
@@ -123,7 +126,7 @@ const App = () => {
         </div>
       }
       <Menu user={user} users={users} blogs={blogs} blogForm={blogForm}
-        updateBlog={updateBlog} removeBlog={removeBlog} />
+        likeBlog={likeBlog} removeBlog={removeBlog} />
     </div>
   )
 }
