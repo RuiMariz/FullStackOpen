@@ -1,7 +1,10 @@
 import React from 'react'
 import Togglable from './Togglable'
+import { useSelector } from 'react-redux'
 
-const Blog = ({ blog, updateBlog, removeBlog, user }) => {
+const Blog = ({ blog, updateBlog, removeBlog }) => {
+  const user = useSelector(state => state.user)
+
   return (
     <div className="blog">
       {blog.title} {blog.author}

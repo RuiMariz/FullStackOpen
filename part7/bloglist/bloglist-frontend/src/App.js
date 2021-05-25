@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react'
-import BlogsList from './components/BlogsList'
+import React, { useEffect, useRef, useState } from 'react'
 import blogService from './services/blogs'
+import usersService from './services/users'
 import loginService from './services/login'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
 import LoginForm from './components/LoginForm'
-import { showNotification } from './reducers/notificationReducer'
 import { logInUser, logOutUser } from './reducers/userReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { initBlogs, createBlog, removeBlogRedux, updateBlogRedux } from './reducers/blogsReducer'
-
+import { initUsers } from './reducers/usersReducer'
+import Menu from './components/Menu'
+import { showErrorMessage, showSuccessMessage } from './components/Notification'
 
 const App = () => {
   const [username, setUsername] = useState('')
@@ -26,6 +27,12 @@ const App = () => {
       )
   }, [])
   useEffect(() => {
+    usersService.getAll()
+      .then(users =>
+        dispatch(initUsers(users))
+      )
+  }, [])
+  useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
@@ -34,7 +41,7 @@ const App = () => {
     }
   }, [])
 
-  const handleLogin = async (event) => {
+  const handleLogIn = async (event) => {
     event.preventDefault()
     try {
       const user = await loginService.login({
@@ -45,26 +52,18 @@ const App = () => {
       )
       dispatch(logInUser(user))
       blogService.setToken(user.token)
-      showSuccessMessage('Logged in')
+      showSuccessMessage('Logged in', dispatch)
     } catch (exception) {
       console.log(exception)
-      showErrorMessage('Wrong credentials')
+      showErrorMessage('Wrong credentials', dispatch)
     }
-  }
-
-  const showErrorMessage = (string) => {
-    showNotification(string, 'error', dispatch)
-  }
-
-  const showSuccessMessage = (string) => {
-    showNotification(string, 'success', dispatch)
   }
 
   const handleLogOut = () => {
     window.localStorage.removeItem('loggedBlogAppUser')
     dispatch(logOutUser())
     blogService.setToken(null)
-    showSuccessMessage('Logged out')
+    showSuccessMessage('Logged out', dispatch)
   }
 
   const addBlog = (blogObject) => {
@@ -74,7 +73,7 @@ const App = () => {
       .then(returnedBlog => {
         returnedBlog.user = user
         dispatch(createBlog(returnedBlog))
-        showSuccessMessage('Blog added')
+        showSuccessMessage('Blog added', dispatch)
       })
   }
 
@@ -83,7 +82,7 @@ const App = () => {
       .update(blogObject.id, blogObject)
       .then(returnedBlog => {
         dispatch(updateBlogRedux(returnedBlog))
-        showSuccessMessage('Blog updated')
+        showSuccessMessage('Blog updated', dispatch)
       })
   }
 
@@ -94,7 +93,7 @@ const App = () => {
       .remove(blogObject.id)
       .then(() => {
         dispatch(removeBlogRedux(blogObject))
-        showSuccessMessage('Blog deleted')
+        showSuccessMessage('Blog deleted', dispatch)
       })
   }
 
@@ -106,20 +105,21 @@ const App = () => {
 
   const user = useSelector(state => state.user)
   const blogs = useSelector(state => state.blogs)
+  const users = useSelector(state => state.users)
 
   return (
     <div>
       <h1>Blogs</h1>
       <Notification />
       {user === null ?
-        <LoginForm handleLogin={handleLogin} username={username} password={password}
+        <LoginForm handleLogIn={handleLogIn} username={username} password={password}
           setUsername={setUsername} setPassword={setPassword} /> :
         <div>
           <p>{user.name} logged in <button onClick={() => handleLogOut()} className="logoutButton">logout</button></p>
-          {blogForm()}
         </div>
       }
-      <BlogsList blogs={blogs} updateBlog={updateBlog} removeBlog={removeBlog} user={user} />
+      <Menu user={user} users={users} blogs={blogs} blogForm={blogForm}
+        updateBlog={updateBlog} removeBlog={removeBlog} />
     </div>
   )
 }

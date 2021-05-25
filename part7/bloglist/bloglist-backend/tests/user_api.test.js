@@ -3,8 +3,9 @@ const supertest = require('supertest')
 const app = require('../app')
 const api = supertest(app)
 const User = require('../models/user')
-const Blog=require('../models/blog')
+const Blog = require('../models/blog')
 const helper = require('./test_helper')
+const blog = require('../models/blog')
 
 beforeEach(async () => {
     await User.deleteMany({})
@@ -142,12 +143,18 @@ describe('post user', () => {
 afterAll(async () => {
     await Blog.deleteMany({})
     const userId = await helper.firstUserId()
-    const blogObjects = helper.initialBlogs
-        .map(blog => new Blog(blog))
+    const token = await helper.firstUserToken()
+    let blogObjects = helper.initialBlogs
     for (let blog of blogObjects) {
-        blog.user = userId
+        blog.userId = userId
     }
-    const promiseBlogArray = blogObjects.map(blog => blog.save())
-    await Promise.all(promiseBlogArray)
+    await api
+        .post('/api/blogs')
+        .set('Authorization', `bearer ${token}`)
+        .send(blogObjects[0])
+    await api
+        .post('/api/blogs')
+        .set('Authorization', `bearer ${token}`)
+        .send(blogObjects[1])
     mongoose.connection.close()
 })
