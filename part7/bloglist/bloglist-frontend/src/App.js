@@ -97,11 +97,15 @@ const App = () => {
       })
   }
 
-  const blogForm = () => (
-    <Togglable buttonLabel='new blog' ref={blogFormRef}>
-      <BlogForm createBlog={addBlog} />
-    </Togglable>
-  )
+  const blogForm = () => {
+    if (!user)
+      return null
+    return (
+      <Togglable buttonLabel='new blog' ref={blogFormRef}>
+        <BlogForm createBlog={addBlog} />
+      </Togglable>
+    )
+  }
 
   const user = useSelector(state => state.user)
   const blogs = useSelector(state => state.blogs)
