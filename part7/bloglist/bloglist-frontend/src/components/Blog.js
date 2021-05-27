@@ -4,14 +4,35 @@ import blogService from '../services/blogs'
 import { showSuccessMessage, showErrorMessage } from '../components/Notification'
 import { useDispatch } from 'react-redux'
 import { updateBlogRedux } from '../reducers/blogsReducer'
+import {
+  TextField,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  Divider
+} from '@material-ui/core'
+import ThumbUpIcon from '@material-ui/icons/ThumbUp'
+import DeleteIcon from '@material-ui/icons/Delete'
+import CommentIcon from '@material-ui/icons/Comment'
 
 const Blog = ({ blog, likeBlog, removeBlog }) => {
   const user = useSelector(state => state.user)
   const [comment, setComment] = useState('')
+  const [open, setOpen] = React.useState(false)
   const dispatch = useDispatch()
 
-  if (!blog) {
+  if (!blog)
     return null
+
+  const handleClickOpen = () => {
+    setOpen(true)
+  }
+  const handleClose = () => {
+    setOpen(false)
   }
 
   const handleCommentChange = (event) => {
@@ -48,28 +69,52 @@ const Blog = ({ blog, likeBlog, removeBlog }) => {
 
   return (
     <div className="blog">
-      <h2>{blog.title} by {blog.author}</h2>{blog.url}
-      <br />
-        likes {blog.likes}<button onClick={() => { likeBlog(blog) }} className="likeButton">like</button><br />
-      {blog.user.username}<br />
-      {user !== null && user.username === blog.user.username ?
-        <div>
-          <button onClick={() => { removeBlog(blog) }} className="removeButton">remove</button><br />
-        </div> : <div />}
+      <div style={{ marginTop: '20px' }} />
+      <TextField variant="filled" label="title" value={blog.title} readOnly={true} style={{ width: '60%' }} /><br />
+      <TextField variant="filled" label="author" value={blog.author} readOnly={true} style={{ width: '60%' }} /><br />
+      <TextField variant="filled" label="url" value={blog.url} readOnly={true} style={{ width: '60%' }} /><br />
+      <TextField variant="filled" label="likes" value={blog.likes} InputProps={{ readOnly: true }} />
+      <Button startIcon={<ThumbUpIcon />} variant="contained" color="primary" style={{ margin: '11px 0px 0px 11px' }} onClick={() => { likeBlog(blog) }} >like</Button>
+      {user && user.id === blog.user.id &&
+        <Button startIcon={<DeleteIcon />} variant="contained" color="secondary" style={{ margin: '11px 0px 0px 11px' }} onClick={handleClickOpen} >remove blog</Button>
+      }
+
+      <Dialog onClose={handleClose} open={open} disableBackdropClick disableEscapeKeyDown>
+        <DialogTitle onClose={handleClose}>
+          Remove &quot;{blog.title}&quot; by {blog.author}?
+        </DialogTitle>
+        <DialogActions>
+          <Button autoFocus onClick={handleClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={() => { removeBlog(blog) }} color="primary">
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <hr />
-      <strong>comments</strong><br />
-      <input value={comment} id='comment' onChange={handleCommentChange} />
-      <button onClick={addComment}>add comment</button>
-      {user !== null && user.username === blog.user.username ?
-        <div>
-          <button onClick={() => { removeAllComments() }} className="removeButton">remove all comments</button><br />
-        </div> : <div />}
+
+      <TextField label="comment" type="text" value={comment} name="comment" multiline style={{ minWidth: '50%' }} onChange={handleCommentChange} />
+      <Button startIcon={<CommentIcon />} variant="contained" color="primary" style={{ margin: '5px 0px 0px 5px' }} onClick={addComment} >add comment</Button>
+      {user !== null && user.id === blog.user.id &&
+        <Button startIcon={<DeleteIcon />} variant="contained" color="secondary" style={{ margin: '5px 0px 0px 10px' }} onClick={removeAllComments} >remove all comments</Button>
+      }
       <br />
-      <ul>
+      <div style={{ marginTop: 20 }} />
+      <strong>comments</strong><br />
+      <List>
         {blog.comments.map((comment, index) =>
-          <li key={index}>{comment}</li>
+          <div key={index}>
+            <ListItem>
+              <ListItemText>
+                {comment}
+              </ListItemText>
+            </ListItem>
+            <Divider />
+          </div>
         )}
-      </ul>
+      </List>
     </div>
   )
 }

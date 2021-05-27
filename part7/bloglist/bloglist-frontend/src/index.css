@@ -1,6 +1,7 @@
 h1 {
-    color: green;
+    color: blue;
     font-style: italic;
+    font-family: 'Mulish', sans-serif;
 }
 
 .blog {
@@ -27,4 +28,34 @@ h1 {
     border-radius: 5px;
     padding: 10px;
     margin-bottom: 10px;
+}
+
+#loginButton{
+    margin: 10px 0px 10px 0px;
+}
+
+.superWidth{
+    width:100%;
+}
+.superHeight{
+    margin-right:200px
+}
+
+.logInMenuItem{
+    float:right;
+    font-size: 1.2em;
+}
+
+.logOutButton{
+    margin-left:10px;
+}
+
+.loggedInMenuItem{
+    display: flex;
+    align-items: center;
+}
+
+.thumbUpIcon{
+    height: 100px;
+    width:100px;
 }

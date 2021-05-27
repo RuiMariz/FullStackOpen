@@ -1,5 +1,5 @@
 
-const notificationReducer = (state = null, action) => {
+const notificationReducer = (state = { message: '', type: '' }, action) => {
   switch (action.type) {
   case ('SHOW_NOTIFICATION'):
     return action.data
@@ -23,7 +23,7 @@ export const showNotification = (message, type, dispatch) => {
   dispatch(createNotification(message, type))
   clearTimeout(previousTimeoutID)
   previousTimeoutID = setTimeout(() => {
-    dispatch(createNotification(null, null))
+    dispatch(createNotification('', ''))
   }, 5000)
 }
 export default notificationReducer

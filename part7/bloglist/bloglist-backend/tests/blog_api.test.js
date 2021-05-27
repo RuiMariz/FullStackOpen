@@ -193,9 +193,11 @@ test('a blog can be deleted', async () => {
 
 test('a blog can be updated', async () => {
     let blog = (await helper.blogsInDb())[0]
+    const token = await helper.firstUserToken()
     blog.likes = 20
     await api
         .put(`/api/blogs/${blog.id}`)
+        .set('Authorization', `bearer ${token}`)
         .send(blog)
         .expect(200)
         .expect('Content-Type', /application\/json/)

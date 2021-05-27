@@ -1,21 +1,45 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  TableHead,
+  Paper
+} from '@material-ui/core'
 
 const Users = () => {
   const users = useSelector(state => state.users)
   const blogs = useSelector(state => state.blogs)
   return (
     <div>
-      <h2>Users</h2>
-      <strong>Blogs created</strong>
-      <ul>
-        {users.map(user =>
-          <li key={user.id}>
-            <Link to={`/users/${user.id}`}>{user.name} - {blogs.filter(blog => blog.user.id === user.id).length}</Link>
-          </li>)}
-      </ul>
-    </div>
+      <div style={{ marginTop: '20px' }}></div>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead style={{ backgroundColor: 'darkgrey' }}>
+            <TableRow>
+              <TableCell>Users</TableCell>
+              <TableCell>number of blogs added</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {users.map(user =>
+              <TableRow key={user.id}>
+                <TableCell>
+                  <Link to={`/users/${user.id}`}>{user.name}</Link>
+                </TableCell>
+                <TableCell>
+                  {blogs.filter(blog => blog.user.id === user.id).length}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div >
   )
 }
 
@@ -27,14 +51,25 @@ export const User = ({ user }) => {
   return (
     <div>
       <h2>{user.name}</h2>
-      <strong>added blogs</strong>
-      <ul>
-        {blogs.map(blog => blog.user.id === user.id ?
-          <li key={blog.id} >
-            <p>{blog.title}</p>
-          </li>
-          : null)}
-      </ul>
+      <div style={{ marginTop: '20px' }}></div>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead style={{ backgroundColor: 'darkgrey' }}>
+            <TableRow>
+              <TableCell>Blogs</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {blogs.map(blog => blog.user.id === user.id &&
+              <TableRow key={blog.id}>
+                <TableCell>
+                  <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   )
 }

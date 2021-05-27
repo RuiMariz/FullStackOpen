@@ -35,12 +35,9 @@ blogsRouter.post('/:id/likes', async (request, response) => {
 })
 
 blogsRouter.post('/', async (request, response) => {
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-
-    if (!request.token || !decodedToken.id) {
+    const user = request.user
+    if (!user)
         return response.status(401).json({ error: 'token missing or invalid' })
-    }
-    let user = await User.findById(decodedToken.id)
 
     const body = request.body
     const blog = new Blog({
@@ -50,7 +47,7 @@ blogsRouter.post('/', async (request, response) => {
         likes: body.likes || 0,
         user: user._id
     })
-    
+
     const savedBlog = await blog.save()
     user.blogs = user.blogs.concat(savedBlog._id)
     await user.save()
@@ -58,12 +55,9 @@ blogsRouter.post('/', async (request, response) => {
 })
 
 blogsRouter.delete('/:id', async (request, response) => {
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-
-    if (!request.token || !decodedToken.id) {
+    const user = request.user
+    if (!user)
         return response.status(401).json({ error: 'token missing or invalid' })
-    }
-    const user = await User.findById(decodedToken.id)
     const blog = await Blog.findById(request.params.id)
 
     if (!blog)
@@ -73,19 +67,17 @@ blogsRouter.delete('/:id', async (request, response) => {
         await Blog.findByIdAndRemove(request.params.id)
         return response.status(204).end()
     }
-    
+
     return response.status(401).json({ error: 'can\'t remove blogs created by someone else' })
 })
 
 blogsRouter.put('/:id', async (request, response) => {
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-
-    if (!request.token || !decodedToken.id) {
+    const user = request.user
+    if (!user)
         return response.status(401).json({ error: 'token missing or invalid' })
-    }
-    const user = await User.findById(decodedToken.id)
     const blog = await Blog.findById(request.body.id)
-    console.log(blog)
+    if (!blog)
+        return response.status(204).end()
     if (blog.user.toString() !== user._id.toString()) {
         return response.status(401).json({ error: 'can\'t edit blogs created by someone else' })
     }

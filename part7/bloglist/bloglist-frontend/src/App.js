@@ -1,23 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect } from 'react'
 import blogService from './services/blogs'
 import usersService from './services/users'
-import loginService from './services/login'
-import Notification from './components/Notification'
-import Togglable from './components/Togglable'
-import BlogForm from './components/BlogForm'
-import LoginForm from './components/LoginForm'
 import { logInUser, logOutUser } from './reducers/userReducer'
 import { useDispatch, useSelector } from 'react-redux'
-import { initBlogs, createBlog, removeBlogRedux, updateBlogRedux } from './reducers/blogsReducer'
+import { initBlogs, removeBlogRedux, updateBlogRedux } from './reducers/blogsReducer'
 import { initUsers } from './reducers/usersReducer'
 import Menu from './components/Menu'
-import { showErrorMessage, showSuccessMessage } from './components/Notification'
+import { showSuccessMessage } from './components/Notification'
 import { useHistory, } from 'react-router-dom'
+import Container from '@material-ui/core/Container'
 
 const App = () => {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const blogFormRef = useRef()
+
   const history = useHistory()
 
   const dispatch = useDispatch()
@@ -43,40 +37,11 @@ const App = () => {
     }
   }, [])
 
-  const handleLogIn = async (event) => {
-    event.preventDefault()
-    try {
-      const user = await loginService.login({
-        username, password
-      })
-      window.localStorage.setItem(
-        'loggedBlogAppUser', JSON.stringify(user)
-      )
-      dispatch(logInUser(user))
-      blogService.setToken(user.token)
-      showSuccessMessage('Logged in', dispatch)
-    } catch (exception) {
-      console.log(exception)
-      showErrorMessage('Wrong credentials', dispatch)
-    }
-  }
-
   const handleLogOut = () => {
     window.localStorage.removeItem('loggedBlogAppUser')
     dispatch(logOutUser())
     blogService.setToken(null)
     showSuccessMessage('Logged out', dispatch)
-  }
-
-  const addBlog = (blogObject) => {
-    blogFormRef.current.toggleVisibility()
-    blogService
-      .create(blogObject)
-      .then(returnedBlog => {
-        returnedBlog.user = user
-        dispatch(createBlog(returnedBlog))
-        showSuccessMessage('Blog added', dispatch)
-      })
   }
 
   const likeBlog = (blogObject) => {
@@ -89,25 +54,13 @@ const App = () => {
   }
 
   const removeBlog = (blogObject) => {
-    if (!window.confirm(`Remove ${blogObject.title} by ${blogObject.author}`))
-      return
     blogService
       .remove(blogObject.id)
       .then(() => {
         dispatch(removeBlogRedux(blogObject))
-        showSuccessMessage('Blog deleted', dispatch)
+        showSuccessMessage('Blog removed', dispatch)
         history.push('/')
       })
-  }
-
-  const blogForm = () => {
-    if (!user)
-      return null
-    return (
-      <Togglable buttonLabel='new blog' ref={blogFormRef}>
-        <BlogForm createBlog={addBlog} />
-      </Togglable>
-    )
   }
 
   const user = useSelector(state => state.user)
@@ -115,19 +68,11 @@ const App = () => {
   const users = useSelector(state => state.users)
 
   return (
-    <div>
+    <Container>
       <h1>Blogs</h1>
-      <Notification />
-      {user === null ?
-        <LoginForm handleLogIn={handleLogIn} username={username} password={password}
-          setUsername={setUsername} setPassword={setPassword} /> :
-        <div>
-          <p>{user.name} logged in <button onClick={() => handleLogOut()} className="logoutButton">logout</button></p>
-        </div>
-      }
-      <Menu user={user} users={users} blogs={blogs} blogForm={blogForm}
-        likeBlog={likeBlog} removeBlog={removeBlog} />
-    </div>
+      <Menu user={user} users={users} blogs={blogs}
+        likeBlog={likeBlog} removeBlog={removeBlog} handleLogOut={handleLogOut}/>
+    </Container>
   )
 }
 
