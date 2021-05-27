@@ -1,8 +1,8 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { showNotification } from '../reducers/notificationReducer'
+import { Snackbar, Slide } from '@material-ui/core'
 import { Alert } from '@material-ui/lab'
-import { Snackbar,Slide } from '@material-ui/core'
 
 export const showErrorMessage = (string, dispatch) => {
   showNotification(string, 'error', dispatch)

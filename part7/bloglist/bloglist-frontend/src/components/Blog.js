@@ -1,29 +1,20 @@
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { useHistory } from 'react-router-dom'
 import blogService from '../services/blogs'
 import { showSuccessMessage, showErrorMessage } from '../components/Notification'
-import { useDispatch } from 'react-redux'
-import { updateBlogRedux } from '../reducers/blogsReducer'
-import {
-  TextField,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogActions,
-  List,
-  ListItem,
-  ListItemText,
-  Divider
-} from '@material-ui/core'
+import { updateBlogRedux, removeBlogRedux } from '../reducers/blogsReducer'
+import { TextField, Button, Dialog, DialogTitle, DialogActions, List, ListItem, ListItemText, Divider } from '@material-ui/core'
 import ThumbUpIcon from '@material-ui/icons/ThumbUp'
 import DeleteIcon from '@material-ui/icons/Delete'
 import CommentIcon from '@material-ui/icons/Comment'
 
-const Blog = ({ blog, likeBlog, removeBlog }) => {
+const Blog = ({ blog }) => {
   const user = useSelector(state => state.user)
   const [comment, setComment] = useState('')
   const [open, setOpen] = React.useState(false)
   const dispatch = useDispatch()
+  const history = useHistory()
 
   if (!blog)
     return null
@@ -67,8 +58,27 @@ const Blog = ({ blog, likeBlog, removeBlog }) => {
     }
   }
 
+  const likeBlog = (blogObject) => {
+    blogService
+      .likeBlog(blogObject.id)
+      .then(returnedBlog => {
+        dispatch(updateBlogRedux(returnedBlog))
+        showSuccessMessage('Blog updated', dispatch)
+      })
+  }
+
+  const removeBlog = (blogObject) => {
+    blogService
+      .remove(blogObject.id)
+      .then(() => {
+        dispatch(removeBlogRedux(blogObject))
+        showSuccessMessage('Blog removed', dispatch)
+        history.push('/')
+      })
+  }
+
   return (
-    <div className="blog">
+    <div>
       <div style={{ marginTop: '20px' }} />
       <TextField variant="filled" label="title" value={blog.title} readOnly={true} style={{ width: '60%' }} /><br />
       <TextField variant="filled" label="author" value={blog.author} readOnly={true} style={{ width: '60%' }} /><br />
@@ -78,9 +88,8 @@ const Blog = ({ blog, likeBlog, removeBlog }) => {
       {user && user.id === blog.user.id &&
         <Button startIcon={<DeleteIcon />} variant="contained" color="secondary" style={{ margin: '11px 0px 0px 11px' }} onClick={handleClickOpen} >remove blog</Button>
       }
-
       <Dialog onClose={handleClose} open={open} disableBackdropClick disableEscapeKeyDown>
-        <DialogTitle onClose={handleClose}>
+        <DialogTitle>
           Remove &quot;{blog.title}&quot; by {blog.author}?
         </DialogTitle>
         <DialogActions>
@@ -92,9 +101,7 @@ const Blog = ({ blog, likeBlog, removeBlog }) => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <hr />
-
+      <br />
       <TextField label="comment" type="text" value={comment} name="comment" multiline style={{ minWidth: '50%' }} onChange={handleCommentChange} />
       <Button startIcon={<CommentIcon />} variant="contained" color="primary" style={{ margin: '5px 0px 0px 5px' }} onClick={addComment} >add comment</Button>
       {user !== null && user.id === blog.user.id &&

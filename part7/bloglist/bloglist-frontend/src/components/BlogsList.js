@@ -1,16 +1,8 @@
 import React from 'react'
-import BlogForm from './BlogForm'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
-  TableHead,
-  Paper
-} from '@material-ui/core'
+import BlogForm from './BlogForm'
+import { Table, TableBody, TableCell, TableContainer, TableRow, TableHead, Paper } from '@material-ui/core'
 
 const BlogsList = () => {
   const blogs = useSelector(state => state.blogs)
