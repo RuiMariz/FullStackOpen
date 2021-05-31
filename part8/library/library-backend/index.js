@@ -181,6 +181,9 @@ const resolvers = {
   Mutation: {
     addAuthor: (root, args) => {
       const author = new Author({ ...args })
+      const errors = author.validateSync()
+      if (errors && errors.errors.name.kind === "minlength")
+        throw new UserInputError('Author name should have length of at least 3', { invalidArgs: args.name })
       return author.save()
     },
     editAuthor: async (root, args) => {
@@ -194,11 +197,18 @@ const resolvers = {
 
     addBook: async (root, args) => {
       let author = await Author.findOne({ name: args.author })
+      let errors
       if (!author) {
         const newAuthor = new Author({ name: args.author })
+        errors = newAuthor.validateSync()
+        if (errors && errors.errors.name.kind === "minlength")
+          throw new UserInputError('Author name should have length of at least 3', { invalidArgs: args.author })
         author = await newAuthor.save()
       }
       const book = new Book({ title: args.title, published: args.published, author, genres: args.genres })
+      errors = book.validateSync()
+      if (errors && errors.errors.title.kind === "minlength")
+        throw new UserInputError('Title should have length of at least 2', { invalidArgs: args.title })
       return book.save()
     },
   }
