@@ -180,7 +180,7 @@ const resolvers = {
     },
     login: async (root, args) => {
       const user = await User.findOne({ username: args.username })
-      if (!user || args.password !== 'secret') {
+      if (!user || args.password !== 'password') {
         throw new UserInputError("wrong credentials")
       }
       const userForToken = {

@@ -3,8 +3,8 @@ import React, { useState } from 'react'
 import { EDIT_AUTHOR } from '../queries'
 import { useMutation } from '@apollo/client'
 
-const Authors = ({ show, authors, setError }) => {
-  const [name, setName] = useState('')
+const Authors = ({ show, authors, setError, token }) => {
+  const [name, setName] = useState(authors[0] ? authors[0].name : null)
   const [born, setBorn] = useState('')
 
   const [editAuthor] = useMutation(EDIT_AUTHOR, {
@@ -49,14 +49,18 @@ const Authors = ({ show, authors, setError }) => {
           )}
         </tbody>
       </table>
-      <h2>set birth year</h2>
-      <form onSubmit={submit}>
-        name<select onChange={({ target }) => setName(target.value)}>
-          {authors.map(author => <option value={author.name} key={author.id}>{author.name}</option>)}
-        </select><br />
+      {token &&
+        <div>
+          <h2>set birth year</h2>
+          <form onSubmit={submit}>
+            name<select onChange={({ target }) => setName(target.value)}>
+              {authors.map(author => <option value={author.name} key={author.id}>{author.name}</option>)}
+            </select><br />
         born<input value={born} name="born" onChange={({ target }) => setBorn(target.value)} required /><br />
-        <button type='submit'>update author</button>
-      </form>
+            <button type='submit'>update author</button>
+          </form>
+        </div>
+      }
     </div>
   )
 }
