@@ -1,18 +1,25 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { useLazyQuery } from '@apollo/client';
+import { ALL_BOOKS } from '../queries'
 
-const Recommend = ({ show, setError, user, books }) => {
+const Recommend = ({ show, user, books }) => {
+  const [booksFiltered, setBooksFiltered] = useState([])
+  const [booksWithGenre, result] = useLazyQuery(ALL_BOOKS, { fetchPolicy: "no-cache" })
+
+  useEffect(() => {
+    if (user) {
+      booksWithGenre({ variables: { genre: user.favoriteGenre } })
+    }
+  }, [booksWithGenre, user, books])
+
+  useEffect(() => {
+    if (result.data) {
+      setBooksFiltered(result.data.allBooks)
+    }
+  }, [result])
 
   if (!show || !user) {
     return null
-  }
-
-  const filterGenre = (books) => {
-    let returnedBooks = []
-    for (let book of books) {
-      if (book.genres.includes(user.favoriteGenre))
-        returnedBooks.push(book)
-    }
-    return returnedBooks
   }
 
   return (
@@ -33,7 +40,7 @@ const Recommend = ({ show, setError, user, books }) => {
               published
             </th>
           </tr>
-          {filterGenre(books).map(a =>
+          {booksFiltered.map(a =>
             <tr key={a.title}>
               <td>{a.title}</td>
               <td>{a.author.name}</td>

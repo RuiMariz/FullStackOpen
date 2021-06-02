@@ -42,10 +42,6 @@ const typeDefs = gql`
     token: String
     id: ID!
   }
-  
-  type Token {
-    token: String!
-  }
 
   type Query {
     authorCount: Int!

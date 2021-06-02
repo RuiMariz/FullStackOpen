@@ -41,6 +41,7 @@ const App = () => {
     setUser(null)
     localStorage.clear()
     client.resetStore()
+    setPage('authors')
   }
 
   const authors = resultAuthors.data.allAuthors
@@ -65,9 +66,9 @@ const App = () => {
 
       <Authors authors={authors} show={page === 'authors'} setError={notify} user={user} />
       <Books books={books} show={page === 'books'} />
-      <LoginForm show={page === 'login'} setError={notify} setUser={setUser} />
+      <LoginForm show={page === 'login'} setError={notify} setUser={setUser} setPage={setPage} />
       <NewBook show={page === 'add'} setError={notify} />
-      <Recommend show={page === 'recommend'} setError={notify} user={user} books={books} />
+      <Recommend show={page === 'recommend'} user={user} books={books} />
 
     </div>
   )
