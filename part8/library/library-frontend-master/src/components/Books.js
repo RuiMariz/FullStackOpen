@@ -1,6 +1,29 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 const Books = ({ show, books }) => {
+  const [selectedGenre, setSelectedGenre] = useState('')
+  const [genres, setGenres] = useState([])
+
+  const filterGenre = (books) => {
+    if (selectedGenre === '')
+      return books
+    let returnedBooks = []
+    for (let book of books) {
+      if (book.genres.includes(selectedGenre))
+        returnedBooks.push(book)
+    }
+    return returnedBooks
+  }
+
+  for (let book of books) {
+    for (let genre of book.genres) {
+      if (!genres.includes(genre)) {
+        setGenres(genres.concat(genre))
+      }
+    }
+  }
+
+
   if (!show) {
     return null
   }
@@ -20,7 +43,7 @@ const Books = ({ show, books }) => {
               published
             </th>
           </tr>
-          {books.map(a =>
+          {filterGenre(books).map(a =>
             <tr key={a.title}>
               <td>{a.title}</td>
               <td>{a.author.name}</td>
@@ -29,6 +52,10 @@ const Books = ({ show, books }) => {
           )}
         </tbody>
       </table>
+      genre<select onChange={({ target }) => setSelectedGenre(target.value)}>
+        <option value={''}></option>
+        {genres.map(genre => <option value={genre} key={genre}>{genre}</option>)}
+      </select><br />
     </div>
   )
 }
