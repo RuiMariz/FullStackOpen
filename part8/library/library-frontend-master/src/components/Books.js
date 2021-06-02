@@ -31,11 +31,16 @@ const Books = ({ show, books }) => {
   return (
     <div>
       <h2>books</h2>
-
+      genre<select onChange={({ target }) => setSelectedGenre(target.value)}>
+        <option value={''}></option>
+        {genres.map(genre => <option value={genre} key={genre}>{genre}</option>)}
+      </select><br /><br />
       <table>
         <tbody>
           <tr>
-            <th></th>
+            <th>
+              title
+            </th>
             <th>
               author
             </th>
@@ -52,10 +57,6 @@ const Books = ({ show, books }) => {
           )}
         </tbody>
       </table>
-      genre<select onChange={({ target }) => setSelectedGenre(target.value)}>
-        <option value={''}></option>
-        {genres.map(genre => <option value={genre} key={genre}>{genre}</option>)}
-      </select><br />
     </div>
   )
 }

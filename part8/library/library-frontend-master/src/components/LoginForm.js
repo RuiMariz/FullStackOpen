@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { LOGIN } from '../queries'
 
-const LoginForm = ({ show, setError, setToken }) => {
+const LoginForm = ({ show, setError, setUser }) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
@@ -14,9 +14,9 @@ const LoginForm = ({ show, setError, setToken }) => {
 
   useEffect(() => {
     if (result.data) {
-      const token = result.data.login.value
-      setToken(token)
-      localStorage.setItem('libraryAppToken', token)
+      const user = result.data.login
+      setUser(user)
+      localStorage.setItem('libraryAppUser', JSON.stringify(user))
     }
   }, [result.data]) // eslint-disable-line
 

@@ -5,11 +5,11 @@ import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache } from '@apollo/c
 import { setContext } from 'apollo-link-context'
 
 const authLink = setContext((_, { headers }) => {
-  const token = localStorage.getItem('libraryAppToken')
+  const user = JSON.parse(localStorage.getItem('libraryAppUser'))
   return {
     headers: {
       ...headers,
-      authorization: token ? `bearer ${token}` : null,
+      authorization: user ? `bearer ${user.token}` : null,
     }
   }
 })

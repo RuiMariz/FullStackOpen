@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { EDIT_AUTHOR } from '../queries'
 import { useMutation } from '@apollo/client'
 
-const Authors = ({ show, authors, setError, token }) => {
+const Authors = ({ show, authors, setError, user }) => {
   const [name, setName] = useState(authors[0] ? authors[0].name : null)
   const [born, setBorn] = useState('')
 
@@ -32,7 +32,9 @@ const Authors = ({ show, authors, setError, token }) => {
       <table>
         <tbody>
           <tr>
-            <th></th>
+            <th>
+              name
+            </th>
             <th>
               born
             </th>
@@ -49,7 +51,7 @@ const Authors = ({ show, authors, setError, token }) => {
           )}
         </tbody>
       </table>
-      {token &&
+      {user &&
         <div>
           <h2>set birth year</h2>
           <form onSubmit={submit}>

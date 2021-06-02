@@ -39,11 +39,12 @@ const typeDefs = gql`
   type User {
     username: String!
     favoriteGenre: String!
+    token: String
     id: ID!
   }
   
   type Token {
-    value: String!
+    token: String!
   }
 
   type Query {
@@ -82,7 +83,7 @@ const typeDefs = gql`
     login(
       username: String!
       password: String!
-    ): Token
+    ): User
   }
 `
 
@@ -170,7 +171,7 @@ const resolvers = {
     },
 
     createUser: (root, args) => {
-      const user = new User({ username: args.username })
+      const user = new User({ username: args.username, favoriteGenre: args.favoriteGenre })
       return user.save()
         .catch(error => {
           throw new UserInputError(error.message, {
@@ -187,7 +188,8 @@ const resolvers = {
         username: user.username,
         id: user._id,
       }
-      return { value: jwt.sign(userForToken, JWT_SECRET) }
+      user.token=jwt.sign(userForToken, JWT_SECRET)
+      return user
     },
   }
 }
