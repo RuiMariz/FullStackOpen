@@ -5,8 +5,8 @@ import Books from './components/Books'
 import NewBook from './components/NewBook'
 import LoginForm from './components/LoginForm'
 import Recommend from './components/Recommend'
-import { useQuery, useApolloClient } from '@apollo/client';
-import { ALL_AUTHORS, ALL_BOOKS } from './queries'
+import { useQuery, useApolloClient, useSubscription } from '@apollo/client';
+import { ALL_AUTHORS, ALL_BOOKS, BOOK_ADDED } from './queries'
 
 let previousTimeOutId = null
 
@@ -24,6 +24,42 @@ const App = () => {
     if (user)
       setUser(user)
   }, [])
+
+  const updateCacheWith = (addedBook) => {
+    const includedIn = (set, object) =>
+      set.map(b => b.id).includes(object.id)
+
+    const dataInStore = client.readQuery({ query: ALL_BOOKS })
+    if (!includedIn(dataInStore.allBooks, addedBook)) {
+      client.writeQuery({
+        query: ALL_BOOKS,
+        data: { allBooks: dataInStore.allBooks.concat(addedBook) }
+      })
+    }
+
+    let author = addedBook.author
+    author.bookCount++
+    const dataInStore2 = client.readQuery({ query: ALL_AUTHORS })
+    if (!includedIn(dataInStore2.allAuthors, author)) {
+      client.writeQuery({
+        query: ALL_AUTHORS,
+        data: { allAuthors: dataInStore2.allAuthors.concat(author) }
+      })
+    } else {
+      client.writeQuery({
+        query: ALL_AUTHORS,
+        data: { allAuthors: dataInStore2.allAuthors.map(a => a.id !== author.id ? a : author) }
+      })
+    }
+  }
+
+  useSubscription(BOOK_ADDED, {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const addedBook = subscriptionData.data.bookAdded
+      window.alert(`${addedBook.title} added`);
+      updateCacheWith(addedBook)
+    }
+  })
 
   if (resultAuthors.loading || resultBooks.loading) {
     return <div>loading...</div>
@@ -67,7 +103,7 @@ const App = () => {
       <Authors authors={authors} show={page === 'authors'} setError={notify} user={user} />
       <Books books={books} show={page === 'books'} />
       <LoginForm show={page === 'login'} setError={notify} setUser={setUser} setPage={setPage} />
-      <NewBook show={page === 'add'} setError={notify} />
+      <NewBook show={page === 'add'} setError={notify} updateCacheWith={updateCacheWith} />
       <Recommend show={page === 'recommend'} user={user} books={books} />
 
     </div>

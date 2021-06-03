@@ -18,7 +18,7 @@ const LoginForm = ({ show, setError, setUser, setPage }) => {
       setUser(user)
       localStorage.setItem('libraryAppUser', JSON.stringify(user))
     }
-  }, [result]) // eslint-disable-line
+  }, [result.data]) // eslint-disable-line
 
   const submit = async (event) => {
     event.preventDefault()

@@ -1,6 +1,5 @@
 
-const { ApolloServer, gql, UserInputError } = require('apollo-server')
-const { v1: uuid } = require('uuid')
+const { ApolloServer, gql, UserInputError, PubSub } = require('apollo-server')
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 const config = require('./config')
@@ -8,6 +7,7 @@ const Author = require('./models/author')
 const Book = require('./models/book')
 const User = require('./models/user')
 
+const pubsub = new PubSub()
 const JWT_SECRET = process.env.JWT_SECRET
 const MONGODB_URI = process.env.MONGODB_URI
 console.log('connecting to', MONGODB_URI)
@@ -80,6 +80,10 @@ const typeDefs = gql`
       username: String!
       password: String!
     ): User
+  }
+
+  type Subscription {
+    bookAdded: Book!
   }
 `
 
@@ -163,6 +167,8 @@ const resolvers = {
       errors = book.validateSync()
       if (errors && errors.errors.title.kind === "minlength")
         throw new UserInputError('Title should have length of at least 2', { invalidArgs: args.title })
+
+      pubsub.publish('BOOK_ADDED', { bookAdded: book })
       return book.save()
     },
 
@@ -184,10 +190,16 @@ const resolvers = {
         username: user.username,
         id: user._id,
       }
-      user.token=jwt.sign(userForToken, JWT_SECRET)
+      user.token = jwt.sign(userForToken, JWT_SECRET)
       return user
     },
-  }
+  },
+
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator(['BOOK_ADDED'])
+    },
+  },
 }
 
 const server = new ApolloServer({
@@ -205,6 +217,7 @@ const server = new ApolloServer({
   }
 })
 
-server.listen().then(({ url }) => {
+server.listen().then(({ url, subscriptionsUrl }) => {
   console.log(`Server ready at ${url}`)
+  console.log(`Subscriptions ready at ${subscriptionsUrl}`)
 })
