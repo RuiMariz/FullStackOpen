@@ -38,7 +38,6 @@ const App = () => {
     }
 
     let author = addedBook.author
-    author.bookCount++
     const dataInStore2 = client.readQuery({ query: ALL_AUTHORS })
     if (!includedIn(dataInStore2.allAuthors, author)) {
       client.writeQuery({

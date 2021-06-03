@@ -119,16 +119,9 @@ const resolvers = {
     }
   },
 
-  Author: {
-    bookCount: async (root) => {
-      const books = await Book.find({}).populate('author')
-      return books.filter((book) => book.author.name === root.name).length
-    }
-  },
-
   Mutation: {
     addAuthor: (root, args) => {
-      const author = new Author({ ...args })
+      const author = new Author({ ...args, bookCount: 0 })
       const errors = author.validateSync()
       if (errors && errors.errors.name.kind === "minlength")
         throw new UserInputError('Author name should have length of at least 3', { invalidArgs: args.name })
@@ -157,11 +150,14 @@ const resolvers = {
       let author = await Author.findOne({ name: args.author })
       let errors
       if (!author) {
-        const newAuthor = new Author({ name: args.author })
+        const newAuthor = new Author({ name: args.author, bookCount: 1 })
         errors = newAuthor.validateSync()
         if (errors && errors.errors.name.kind === "minlength")
           throw new UserInputError('Author name should have length of at least 3', { invalidArgs: args.author })
         author = await newAuthor.save()
+      } else {
+        author.bookCount++
+        await author.save()
       }
       const book = new Book({ title: args.title, published: args.published, author, genres: args.genres })
       errors = book.validateSync()
