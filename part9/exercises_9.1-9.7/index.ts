@@ -12,8 +12,12 @@ app.get('/bmi', (req, res) => {
   try {
     const bmi = calculateBmi(parseArgumentsBmiCalculator(['', '', String(height), String(weight)]));
     res.json({ height: Number(height), weight: Number(weight), bmi: bmi });
-  } catch (ex) {
-    res.json({ error: ex.message });
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      res.json({ error: e.message });
+    } else {
+      res.json({ error: 'Error, something bad happened' });
+    }
   }
 });
 
