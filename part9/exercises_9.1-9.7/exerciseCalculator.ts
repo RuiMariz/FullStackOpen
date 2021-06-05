@@ -61,3 +61,5 @@ try {
     console.log('Error, something bad happened');
   }
 }
+
+export { calculateExercises, parseArgumentsExerciseCalculator };
