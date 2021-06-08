@@ -1,7 +1,7 @@
 import React from 'react';
-import { CoursePartInterface } from './Types';
+import { CoursePart } from './types';
 
-const Total = ({ courseParts }: { courseParts: CoursePartInterface[] }) => {
+const Total = ({ courseParts }: { courseParts: CoursePart[] }) => {
   return (
     <div>
       <p>
