@@ -9,6 +9,16 @@ router.get('/', (_req, res) => {
   res.send(patientService.getNonSensitiveEntries());
 });
 
+router.get('/:id', (req, res) => {
+  const id = req.params.id;
+  const patient = patientService.findById(id);
+  if (patient) {
+    return res.json(patient);
+  } else {
+    return res.sendStatus(404);
+  }
+});
+
 router.post('/', (req, res) => {
   const { name, dateOfBirth, ssn, gender, occupation } = req.body;
   try {
