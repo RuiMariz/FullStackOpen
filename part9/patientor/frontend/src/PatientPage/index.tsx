@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import axios from "axios";
 import { apiBaseUrl } from "../constants";
-import { useStateValue } from "../state";
+import { useStateValue, addPatient } from "../state";
 import { useParams } from 'react-router-dom';
 import { Patient } from "../types";
 import { Icon } from 'semantic-ui-react';
@@ -18,7 +18,7 @@ const PatientPage = () => {
         const { data: newPatient } = await axios.get<Patient>(`${apiBaseUrl}/patients/${id}`);
         if (!newPatient)
           return;
-        dispatch({ type: "ADD_PATIENT", payload: newPatient });
+        dispatch(addPatient(newPatient));
       } catch (e) {
         console.error(e.response?.data || 'Unknown Error');
         setError(e.response?.data?.error || 'Unknown error');
