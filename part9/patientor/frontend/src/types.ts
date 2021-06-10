@@ -52,7 +52,7 @@ export interface OccupationalHealthcareEntry extends BaseEntry {
   };
 }
 
-interface HealthCheckEntry extends BaseEntry {
+export interface HealthCheckEntry extends BaseEntry {
   type: 'HealthCheck';
   healthCheckRating: HealthCheckRating;
 }
