@@ -37,6 +37,18 @@ const PatientPage = () => {
       <h2>{patient.name} {patient.gender === 'male' ? <Icon name='man' /> : patient.gender === 'female' ? <Icon name='woman' /> : <Icon name='genderless' />}</h2>
       ssn: {patient.ssn}<br />
       occupation: {patient.occupation}<br />
+      <h3>entries</h3>
+      {patient.entries && patient.entries.map(entry =>
+        <div key={entry.id}>
+          <strong>date: </strong>{entry.date}<br />
+          <strong>description: </strong>{entry.description}
+          <ul>
+            {entry.diagnosisCodes && entry.diagnosisCodes?.map(code =>
+              <li key={code}>{code}</li>
+            )}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
