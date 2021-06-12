@@ -9,12 +9,16 @@ import { Patient } from "../types";
 import { apiBaseUrl } from "../constants";
 import HealthRatingBar from "../components/HealthRatingBar";
 import { useStateValue, addPatient } from "../state";
+import Alert from "../components/Alert";
+
+let previousTimeoutID: number;
 
 const PatientListPage = () => {
   const [{ patients }, dispatch] = useStateValue();
 
   const [modalOpen, setModalOpen] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | undefined>();
+  const [alert, setAlert] = React.useState<{ message: string, type: string }>({ message: "", type: "" });
 
   const openModal = (): void => setModalOpen(true);
 
@@ -30,15 +34,35 @@ const PatientListPage = () => {
         values
       );
       dispatch(addPatient(newPatient));
+      showSuccessMessage('Patient added');
       closeModal();
     } catch (e) {
+      showErrorMessage(e.response?.data?.error || 'Unknown error');
       console.error(e.response?.data || 'Unknown Error');
-      setError(e.response?.data?.error || 'Unknown error');
     }
+  };
+
+  const showSuccessMessage = (message: string) => {
+    setAlert({ message: message, type: 'success' });
+    clearTimeout(previousTimeoutID);
+    previousTimeoutID = Number(setTimeout(() => {
+      setAlert({ message: '', type: '' });
+    }, 5000));
+  };
+
+  const showErrorMessage = (message: string) => {
+    setAlert({ message: message, type: 'error' });
+    clearTimeout(previousTimeoutID);
+    previousTimeoutID = Number(setTimeout(() => {
+      setAlert({ message: '', type: '' });
+    }, 5000));
   };
 
   return (
     <div className="App">
+      <div style={{ 'marginBottom': '20px' }}>
+        <Alert message={alert.message} type={alert.type} />
+      </div>
       <Container textAlign="center">
         <h3>Patient list</h3>
       </Container>

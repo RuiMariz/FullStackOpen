@@ -3,12 +3,15 @@ import axios from "axios";
 import { apiBaseUrl } from "../constants";
 import { useStateValue, addPatient } from "../state";
 import { useParams } from 'react-router-dom';
-import { Patient, Entry } from "../types";
+import { Patient, Entry, EntryType, OccupationalHealthcareEntry } from "../types";
 import { Button, Icon } from 'semantic-ui-react';
 import HospitalEntryForm from './HospitalEntryForm';
 import OccupationalHealthcareForm from './OccupationalHealthcareForm';
 import HealthCheckForm from './HealthCheckForm';
 import AddEntryModal, { EntryFormValues } from "./AddEntryModal";
+import Alert from "../components/Alert";
+
+let previousTimeoutID: number;
 
 const PatientPage = () => {
   const [{ patients }, dispatch] = useStateValue();
@@ -16,6 +19,7 @@ const PatientPage = () => {
   const [modalOpen, setModalOpen] = React.useState<boolean>(false);
   const { id } = useParams<{ id: string }>();
   const patient = Object.values(patients).find((patient: Patient) => patient.id === id);
+  const [alert, setAlert] = React.useState<{ message: string, type: string }>({ message: "", type: "" });
 
   useEffect(() => {
     const getPatient = async () => {
@@ -25,8 +29,8 @@ const PatientPage = () => {
           return;
         dispatch(addPatient(newPatient));
       } catch (e) {
-        console.error(e.response?.data || 'Unknown Error');
-        setError(e.response?.data?.error || 'Unknown error');
+        console.error(e);
+        showErrorMessage(e.response?.data?.error || 'Unknown error');
       }
     };
     if (!patient || !patient.ssn) {
@@ -56,13 +60,46 @@ const PatientPage = () => {
 
   const submitNewEntry = async (values: EntryFormValues) => {
     try {
+      if (values.type === EntryType.OccupationalHealthcare) {
+        const castValues = { ...values as OccupationalHealthcareEntry };
+        //for the case where there is no sick leave
+        if (castValues.sickLeave?.startDate === '' && castValues.sickLeave?.endDate === '') {
+          castValues.sickLeave = undefined;
+          const { data: updatedPatient } = await axios.post<Patient>(
+            `${apiBaseUrl}/patients/${patient?.id as string}/entries`, castValues);
+          dispatch(addPatient(updatedPatient));
+          showSuccessMessage('Entry added');
+          closeModal();
+          return;
+        }
+      }
+      //for all other cases
       const { data: updatedPatient } = await axios.post<Patient>(
         `${apiBaseUrl}/patients/${patient?.id as string}/entries`, values);
       dispatch(addPatient(updatedPatient));
+      showSuccessMessage('Entry added');
+      closeModal();
     } catch (e) {
+      showErrorMessage(e.response?.data?.error || 'Unknown error');
       console.error(e.response?.data || 'Unknown Error');
-      setError(e.response?.data?.error || 'Unknown error');
+      closeModal();
     }
+  };
+
+  const showSuccessMessage = (message: string) => {
+    setAlert({ message: message, type: 'success' });
+    clearTimeout(previousTimeoutID);
+    previousTimeoutID = Number(setTimeout(() => {
+      setAlert({ message: '', type: '' });
+    }, 5000));
+  };
+
+  const showErrorMessage = (message: string) => {
+    setAlert({ message: message, type: 'error' });
+    clearTimeout(previousTimeoutID);
+    previousTimeoutID = Number(setTimeout(() => {
+      setAlert({ message: '', type: '' });
+    }, 5000));
   };
 
   if (!patient) {
@@ -70,6 +107,7 @@ const PatientPage = () => {
   }
   return (
     <div>
+      <Alert message={alert.message} type={alert.type} />
       <h2>{patient.name} {patient.gender === 'male' ? <Icon name='man' /> : patient.gender === 'female' ? <Icon name='woman' /> : <Icon name='genderless' />}</h2>
       ssn: {patient.ssn}<br />
       occupation: {patient.occupation}<br />
@@ -85,7 +123,9 @@ const PatientPage = () => {
         onSubmit={submitNewEntry}
         error={error}
       />
-      <Button onClick={() => openModal()}>Add New Entry</Button>
+      <div style={{ marginTop: '15px' }}>
+        <Button onClick={() => openModal()}>Add New Entry</Button>
+      </div>
     </div>
   );
 };
